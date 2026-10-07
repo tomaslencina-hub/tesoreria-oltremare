@@ -1,7 +1,8 @@
 import { getIdentifier } from "@tauri-apps/api/app";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useState } from "react";
 import "./App.css";
-import logo from "./assets/logo-oltremare.png";
+import logo from "./assets/logo-oltremare-claro.png";
 import { ConfigProvider, useConfigCtx } from "./components/ConfigContext";
 import { ConfirmarProvider } from "./components/Confirmar";
 import Cobros from "./pages/Cobros";
@@ -52,15 +53,25 @@ function Contenido() {
             {m.texto}
           </button>
         ))}
+        <button className="salir" onClick={() => getCurrentWindow().close()}>
+          <span aria-hidden>⏻</span> Salir
+        </button>
       </nav>
-      <main className="contenido">
-        {pagina === "panel" && <Panel irA={setPagina} />}
-        {pagina === "pendientes" && <Pendientes />}
-        {pagina === "cobros" && <Cobros />}
-        {pagina === "personas" && <Personas />}
-        {pagina === "cursos" && <Cursos />}
-        {pagina === "configuracion" && <Configuracion />}
-      </main>
+      <div className="principal">
+        <div className="barra-superior">
+          <button className="btn-minimizar" title="Minimizar" aria-label="Minimizar" onClick={() => getCurrentWindow().minimize()}>
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden><rect x="1" y="6.4" width="12" height="1.6" rx="0.8" fill="currentColor" /></svg>
+          </button>
+        </div>
+        <main className="contenido">
+          {pagina === "panel" && <Panel irA={setPagina} />}
+          {pagina === "pendientes" && <Pendientes />}
+          {pagina === "cobros" && <Cobros />}
+          {pagina === "personas" && <Personas />}
+          {pagina === "cursos" && <Cursos />}
+          {pagina === "configuracion" && <Configuracion />}
+        </main>
+      </div>
     </div>
   );
 }

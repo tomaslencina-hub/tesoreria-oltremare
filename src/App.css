@@ -45,7 +45,11 @@ a { color: var(--verde); cursor: pointer; text-decoration: underline; }
 }
 .menu button:hover { background: rgba(255, 255, 255, 0.08); }
 .menu button.activo { background: var(--verde); color: #fff; }
-.contenido { flex: 1; overflow: auto; padding: 28px 32px; }
+.principal { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.barra-superior { height: 34px; flex-shrink: 0; display: flex; justify-content: flex-end; align-items: center; padding: 0 8px; }
+.btn-minimizar { border: none; background: none; color: var(--texto); width: 44px; height: 30px; padding: 0; display: grid; place-items: center; border-radius: 6px; }
+.btn-minimizar:hover { background: #e4e7eb; color: var(--texto); }
+.contenido { flex: 1; overflow: auto; padding: 0 32px 28px; }
 
 .pagina-cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
 
@@ -137,7 +141,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(11, 138, 74,
   #recibo-imprimible { position: absolute; top: 0; left: 0; width: 100%; border: none; }
 }
 
-/* Cobro con Ã­tems */
+/* Cobro con ÃƒÂ­tems */
 .buscador-persona { display: flex; gap: 8px; }
 .buscador-persona input { width: 180px; }
 .buscador-persona select { flex: 1; }
@@ -152,13 +156,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(11, 138, 74,
 .recibo-items td { padding: 6px 0; border-bottom: 1px solid var(--borde); }
 .recibo-items .num { text-align: right; font-variant-numeric: tabular-nums; }
 
-/* ImportaciÃ³n */
+/* ImportaciÃƒÂ³n */
 .archivo { display: inline-flex; align-items: center; gap: 10px; margin: 8px 0 14px; }
 .archivo input { font-size: 13px; }
 .tabla-scroll { max-height: 360px; overflow: auto; border-radius: var(--radio); }
 code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
 
-/* TalÃ³n (mismo formato que el recibo en papel) */
+/* TalÃƒÂ³n (mismo formato que el recibo en papel) */
 .talones { display: flex; flex-direction: column; gap: 14px; padding: 14px; background: #fff; }
 .talon {
   position: relative; border: 1.5px solid #222; padding: 16px 22px 14px; background: #fff; color: #111;
@@ -178,9 +182,9 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .talon-firma { display: flex; flex-direction: column; align-items: center; min-width: 200px; font-size: 15px; }
 .talon-linea { width: 100%; border-bottom: 2px dotted #333; height: 34px; margin-bottom: 2px; }
 
-.logo-menu { background: #fff; border-radius: 8px; padding: 10px 12px; margin: 0 4px 18px; }
+.logo-menu { padding: 6px 8px 0; margin: 0 4px 18px; }
 .logo-menu img { width: 100%; display: block; }
-.logo-menu small { display: block; text-align: center; color: var(--muted); margin-top: 6px; letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; }
+.logo-menu small { display: block; text-align: center; color: #a8c0b0; margin-top: 8px; letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; }
 .panel-form h3 { margin: 6px 0 -4px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
 
 /* Distintivo de entorno (desarrollo / prueba) */
@@ -215,7 +219,7 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .concepto-importe input { width: 96px; text-align: right; padding: 5px 8px; }
 .concepto-subtotal { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-/* Diálogo de confirmación */
+/* DiÃ¡logo de confirmaciÃ³n */
 .confirmar-mensaje p { margin: 0 0 10px; }
 .confirmar-mensaje ul { margin: 0 0 10px; padding-left: 20px; }
 .resumen { display: grid; grid-template-columns: 80px 1fr; gap: 6px 12px; margin: 0 0 14px; padding: 12px 14px; background: #f9fafb; border: 1px solid var(--borde); border-radius: 6px; }
@@ -224,3 +228,8 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .aviso-peligro { color: #8f1d27; background: #fdecee; border-radius: 6px; padding: 10px 12px; margin: 0 !important; font-size: 13px; }
 .btn-peligro-lleno { background: var(--rojo); border-color: var(--rojo); color: #fff; }
 .btn-peligro-lleno:hover { background: #a82731; border-color: #a82731; }
+
+/* Salir, al pie del menÃº */
+.menu .salir { margin-top: auto; color: #e9b8bd; border-top: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0 0 6px 6px; padding-top: 12px; }
+.menu .salir:hover { background: rgba(200, 49, 62, 0.25); color: #fff; }
+.menu .salir span { margin-right: 6px; }

@@ -2,12 +2,16 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "opener:default",
     "sql:default",
     "sql:allow-execute",
-    "clipboard-manager:allow-write-image"
+    "clipboard-manager:allow-write-image",
+    "core:window:allow-minimize",
+    "core:window:allow-close"
   ]
 }
