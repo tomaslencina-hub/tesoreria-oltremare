@@ -233,3 +233,4 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .menu .salir { margin-top: auto; color: #e9b8bd; border-top: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0 0 6px 6px; padding-top: 12px; }
 .menu .salir:hover { background: rgba(200, 49, 62, 0.25); color: #fff; }
 .menu .salir span { margin-right: 6px; }
+.entorno-prod-dev { background: var(--rojo); color: #fff; }

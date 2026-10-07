@@ -26,11 +26,17 @@ const MENU: { id: Pagina; texto: string }[] = [
 function Contenido() {
   const { config, error } = useConfigCtx();
   const [pagina, setPagina] = useState<Pagina>("panel");
-  const [entorno, setEntorno] = useState<"dev" | "test" | null>(null);
+  const [entorno, setEntorno] = useState<"dev" | "test" | "prod-dev" | null>(null);
 
   // El identificador cambia por entorno (ver src-tauri/tauri.*.conf.json), y con él la base de datos.
   useEffect(() => {
-    getIdentifier().then((id) => setEntorno(id.endsWith(".dev") ? "dev" : id.endsWith(".test") ? "test" : null));
+    getIdentifier().then((id) => setEntorno(
+      id.endsWith(".dev") ? "dev"
+        : id.endsWith(".test") ? "test"
+        // Versión de desarrollo abierta con la base real (npm run tauri dev en vez de npm run app:dev).
+        : import.meta.env.DEV ? "prod-dev"
+        : null,
+    ));
   }, []);
 
   if (error) return <div className="cargando error">No se pudo abrir la base de datos: {error}</div>;
@@ -45,7 +51,9 @@ function Contenido() {
         </div>
         {entorno && (
           <div className={`entorno entorno-${entorno}`}>
-            {entorno === "dev" ? "Desarrollo" : "Prueba"} — datos de prueba
+            {entorno === "dev" ? "Desarrollo — datos de prueba"
+              : entorno === "test" ? "Prueba — datos de prueba"
+              : "¡Base de PRODUCCIÓN! Usá npm run app:dev"}
           </div>
         )}
         {MENU.map((m) => (
