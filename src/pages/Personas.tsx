@@ -45,7 +45,7 @@ export default function Personas() {
           <p className="muted">{filas.length} personas</p>
         </div>
         <div className="fila-botones">
-          <button onClick={() => setImportando(true)}>Importar CSV</button>
+          <button onClick={() => setImportando(true)}>Importar planilla</button>
           <button className="btn-primario" onClick={() => setEditando({ ...VACIA })}>+ Nueva persona</button>
         </div>
       </header>

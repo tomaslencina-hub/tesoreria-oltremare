@@ -1,6 +1,7 @@
 import { ChangeEvent, useState } from "react";
-import { normalizar, leerAlumnos, FilaAlumno } from "../lib/csv";
+import { normalizar, leerAlumnos, leerAlumnosDeFilas, FilaAlumno } from "../lib/csv";
 import { execute, select } from "../lib/db";
+import { leerFilasExcel } from "../lib/excel";
 import { Curso, Persona } from "../lib/tipos";
 import Modal from "./Modal";
 
@@ -21,7 +22,15 @@ export default function ImportarModal({ onCerrar, onImportado }: { onCerrar: () 
     const f = e.target.files?.[0];
     if (!f) return;
     setResultado(null);
-    const { filas, errores } = leerAlumnos(await f.text());
+    setAnalisis([]);
+    let leido: ReturnType<typeof leerAlumnos>;
+    try {
+      leido = /\.xlsx$/i.test(f.name) ? leerAlumnosDeFilas(await leerFilasExcel(f)) : leerAlumnos(await f.text());
+    } catch (err) {
+      setErrores([`No se pudo leer el archivo: ${err}`]);
+      return;
+    }
+    const { filas, errores } = leido;
     const cursos = await select<Curso>("SELECT * FROM cursos");
     const personas = await select<Persona>("SELECT * FROM personas");
     const porCurso = new Map(cursos.map((c) => [normalizar(c.nombre), c.id]));
@@ -49,15 +58,15 @@ export default function ImportarModal({ onCerrar, onImportado }: { onCerrar: () 
           // Solo completa datos faltantes; no pisa lo que ya se cargó en la app.
           await execute(
             `UPDATE personas SET dni = COALESCE(dni, $1), telefono = COALESCE(telefono, $2),
-                    email = COALESCE(email, $3) WHERE id = $4`,
-            [f.dni || null, f.telefono || null, f.email || null, id],
+                    email = COALESCE(email, $3), notas = COALESCE(notas, $4) WHERE id = $5`,
+            [f.dni || null, f.telefono || null, f.email || null, f.notas || null, id],
           );
           actualizadas++;
         } else {
           const r = await execute(
-            `INSERT INTO personas (apellido, nombre, dni, telefono, email, es_socio, activo)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [f.apellido, f.nombre, f.dni || null, f.telefono || null, f.email || null, f.socio ? 1 : 0, f.activo ? 1 : 0],
+            `INSERT INTO personas (apellido, nombre, dni, telefono, email, es_socio, activo, notas)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [f.apellido, f.nombre, f.dni || null, f.telefono || null, f.email || null, f.socio ? 1 : 0, f.activo ? 1 : 0, f.notas || null],
           );
           id = Number(r.lastInsertId);
           nuevas++;
@@ -85,7 +94,7 @@ export default function ImportarModal({ onCerrar, onImportado }: { onCerrar: () 
 
   return (
     <Modal
-      titulo="Importar alumnos desde CSV"
+      titulo="Importar alumnos"
       onCerrar={onCerrar}
       ancho={820}
       pie={
@@ -99,11 +108,11 @@ export default function ImportarModal({ onCerrar, onImportado }: { onCerrar: () 
       }
     >
       <p className="muted">
-        Columnas: <code>apellido; nombre; dni; telefono; email; curso; socio; activo</code>. Se puede guardar
-        desde Excel como “CSV (delimitado por comas)”. Las personas que ya existen no se duplican.
+        Elegí la planilla de alumnos (<code>.xlsx</code>, a partir de <code>plantillas/plantilla_alumnos.xlsx</code>) o un CSV
+        con las mismas columnas. Las personas que ya existen no se duplican: solo se completan los datos que les falten.
       </p>
       <label className="archivo">
-        <input type="file" accept=".csv,.txt" onChange={elegir} />
+        <input type="file" accept=".xlsx,.csv,.txt" onChange={elegir} />
       </label>
 
       {errores.map((e) => <p key={e} className="error">{e}</p>)}

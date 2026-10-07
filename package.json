@@ -20,7 +20,8 @@
     "@tauri-apps/plugin-sql": "^2.5.0",
     "html-to-image": "^1.11.13",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "read-excel-file": "^9.3.10"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
