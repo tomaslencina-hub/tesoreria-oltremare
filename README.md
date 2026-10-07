@@ -24,7 +24,23 @@ npm run build:prod    # instalador definitivo (src-tauri/target/release/bundle)
 
 Cada entorno es una app distinta con su propia base de datos (en `%APPDATA%\<identificador>`), así que probar nunca toca los datos reales. Las versiones de desarrollo y prueba muestran un distintivo de color en el menú.
 
-Flujo: trabajar en `develop` → merge a `test` y probar el instalador → merge a `production`. Antes de publicar una versión nueva, subir el número en `package.json`, `src-tauri/Cargo.toml` y `src-tauri/tauri.conf.json`.
+Flujo: trabajar en `develop` → merge a `test` y probar → merge a `production`.
+
+## Actualizaciones automáticas
+
+La app instalada busca versiones nuevas al abrirse y ofrece instalarlas (plugin updater de Tauri):
+
+- **Prueba** se actualiza desde la release `canal-test` (la publica GitHub Actions al subir a `test`).
+- **Producción** se actualiza desde la última Release `v<versión>` (al subir a `production`).
+- **Cada publicación necesita un número de versión mayor** en `package.json` (`tauri.conf.json` lo toma de ahí). Si no, las apps instaladas no ven la actualización.
+- Las actualizaciones van firmadas. La clave privada está en `%USERPROFILE%.tauri	esoreria-oltremare.key` (fuera del repo, sin contraseña) y en el secreto `TAURI_SIGNING_PRIVATE_KEY` de GitHub. **Si se pierde, las apps instaladas no aceptan más actualizaciones** y hay que reinstalarlas a mano: guardar una copia en un lugar seguro.
+
+Para armar un instalador local (también firmado):
+
+```bash
+export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/tesoreria-oltremare.key)" TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
+npm run build:test    # o build:prod
+```
 
 ## Funcionalidades
 

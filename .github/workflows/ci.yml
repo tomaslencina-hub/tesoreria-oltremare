@@ -1,6 +1,9 @@
 # develop    -> desarrollo diario: se verifica que compile.
-# test       -> se arma el instalador de PRUEBA (base de datos separada) para probar en una PC.
-# production -> se arma el instalador definitivo y se publica como Release (borrador) en GitHub.
+# test       -> instalador de PRUEBA firmado, publicado en la release "canal-test"; las apps de prueba
+#               instaladas se actualizan solas desde ahí.
+# production -> instalador definitivo firmado, publicado como Release v<versión>; la app definitiva
+#               se actualiza sola desde la última Release.
+# Cada vez que se publica, la versión (package.json) tiene que ser mayor que la anterior.
 name: CI
 
 on:
@@ -45,13 +48,18 @@ jobs:
         with:
           workspaces: src-tauri
       - run: npm ci
-      - run: npm run build:test
-      - uses: actions/upload-artifact@v4
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
-          name: instalador-test-${{ github.sha }}
-          path: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/msi/*.msi
+          args: --config src-tauri/tauri.test.conf.json
+          tagName: canal-test
+          releaseName: Canal de prueba
+          releaseBody: Versiones de PRUEBA (base de datos separada). Las apps de prueba instaladas se actualizan solas.
+          prerelease: true
+          releaseDraft: false
 
   release-produccion:
     if: github.event_name == 'push' && github.ref_name == 'production'
@@ -70,8 +78,10 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
           tagName: v__VERSION__
           releaseName: Tesorería Oltremare v__VERSION__
-          releaseBody: Instalador para Windows. Descargar el archivo .exe y ejecutarlo.
-          releaseDraft: true
+          releaseBody: Instalador para Windows. Descargar el archivo .exe y ejecutarlo. Las apps ya instaladas se actualizan solas.
+          releaseDraft: false

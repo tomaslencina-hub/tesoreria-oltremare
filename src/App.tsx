@@ -1,9 +1,10 @@
-import { getIdentifier } from "@tauri-apps/api/app";
+import { getIdentifier, getVersion } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useState } from "react";
 import "./App.css";
 import logo from "./assets/logo-oltremare-claro.png";
 import { ConfigProvider, useConfigCtx } from "./components/ConfigContext";
+import Actualizador from "./components/Actualizador";
 import { ConfirmarProvider } from "./components/Confirmar";
 import Cobros from "./pages/Cobros";
 import Configuracion from "./pages/Configuracion";
@@ -27,9 +28,11 @@ function Contenido() {
   const { config, error } = useConfigCtx();
   const [pagina, setPagina] = useState<Pagina>("panel");
   const [entorno, setEntorno] = useState<"dev" | "test" | "prod-dev" | null>(null);
+  const [version, setVersion] = useState("");
 
   // El identificador cambia por entorno (ver src-tauri/tauri.*.conf.json), y con él la base de datos.
   useEffect(() => {
+    getVersion().then(setVersion);
     getIdentifier().then((id) => setEntorno(
       id.endsWith(".dev") ? "dev"
         : id.endsWith(".test") ? "test"
@@ -64,7 +67,9 @@ function Contenido() {
         <button className="salir" onClick={() => getCurrentWindow().close()}>
           <span aria-hidden>⏻</span> Salir
         </button>
+        {version && <small className="version">Versión {version}</small>}
       </nav>
+      <Actualizador />
       <div className="principal">
         <div className="barra-superior">
           <button className="btn-minimizar" title="Minimizar" aria-label="Minimizar" onClick={() => getCurrentWindow().minimize()}>

@@ -241,3 +241,9 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .importar-resumen select { margin-left: auto; }
 .cambios { margin: 0; padding-left: 16px; font-size: 13px; }
 .cambios li { margin: 1px 0; }
+
+/* Versión y actualizaciones */
+.menu .version { text-align: center; color: #6f8a78; font-size: 11px; padding-top: 6px; }
+.barra-progreso { height: 8px; background: #e4e7eb; border-radius: 4px; overflow: hidden; margin: 10px 0 6px; }
+.barra-progreso div { height: 100%; background: var(--verde); transition: width 0.2s; }
+.notas-version { white-space: pre-line; }

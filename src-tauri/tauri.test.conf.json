@@ -14,5 +14,12 @@
         "maximized": true
       }
     ]
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/tomaslencina-hub/tesoreria-oltremare/releases/download/canal-test/latest.json"
+      ]
+    }
   }
 }
