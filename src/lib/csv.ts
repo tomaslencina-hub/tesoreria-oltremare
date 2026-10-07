@@ -44,6 +44,9 @@ export interface FilaAlumno {
   notas: string;
   socio: boolean;
   activo: boolean;
+  /** Si la planilla trae un valor en Socio / Activo (vacío = no cambiar a quien ya existe). */
+  socioIndicado: boolean;
+  activoIndicado: boolean;
 }
 
 const SI = (v: string | undefined, porDefecto: boolean) =>
@@ -113,6 +116,8 @@ export function leerAlumnosDeFilas(filasCrudas: string[][]): { filas: FilaAlumno
       notas: get(iNotas),
       socio: SI(iSocio >= 0 ? get(iSocio) : undefined, true),
       activo: SI(iActivo >= 0 ? get(iActivo) : undefined, true),
+      socioIndicado: get(iSocio) !== "",
+      activoIndicado: get(iActivo) !== "",
     });
   });
   return { filas, errores };

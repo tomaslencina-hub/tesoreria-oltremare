@@ -42,7 +42,7 @@ Flujo: trabajar en `develop` → merge a `test` y probar el instalador → merge
 
 ## Importar alumnos
 
-Se carga la planilla [plantillas/plantilla_alumnos.xlsx](plantillas/plantilla_alumnos.xlsx) (hoja «Alumnos», con listas desplegables e instrucciones) y se importa desde *Alumnos y socios → Importar planilla*. También acepta CSV con las mismas columnas: `Apellido; Nombre; DNI; Teléfono; Curso; Otro curso; Socio; Activo; Observaciones`. Las personas existentes no se duplican: solo se completan datos faltantes.
+Se carga la planilla [plantillas/plantilla_alumnos.xlsx](plantillas/plantilla_alumnos.xlsx) (hoja «Alumnos», con listas desplegables e instrucciones) y se importa desde *Alumnos y socios → Importar planilla*. También acepta CSV con las mismas columnas: `Apellido; Nombre; DNI; Teléfono; Curso; Otro curso; Socio; Activo; Observaciones`. Las personas existentes no se duplican: se actualiza lo que la planilla trae escrito (teléfono, DNI, socio, activo, cursos) y las celdas vacías no borran nada. La vista previa muestra qué cambia en cada persona antes de aplicar.
 
 Las planillas originales y el CSV generado van en `datos/`, que **no se versiona** (datos personales).
 

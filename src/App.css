@@ -234,3 +234,9 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .menu .salir:hover { background: rgba(200, 49, 62, 0.25); color: #fff; }
 .menu .salir span { margin-right: 6px; }
 .entorno-prod-dev { background: var(--rojo); color: #fff; }
+
+/* Vista previa de importación */
+.importar-resumen { display: flex; align-items: center; gap: 18px; margin-bottom: 10px; flex-wrap: wrap; }
+.importar-resumen select { margin-left: auto; }
+.cambios { margin: 0; padding-left: 16px; font-size: 13px; }
+.cambios li { margin: 1px 0; }
