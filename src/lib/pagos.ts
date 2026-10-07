@@ -1,5 +1,5 @@
 import { execute, select } from "./db";
-import { periodo as formatoPeriodo } from "./format";
+import { describirPeriodos, periodo as formatoPeriodo } from "./format";
 import type { Pendiente, PendientePersona, ReciboDetalle, ReciboItem, TipoItem } from "./tipos";
 
 export interface NuevoRecibo {
@@ -17,6 +17,48 @@ export function conceptoPara(tipo: TipoItem, cursoNombre: string | null, periodo
   if (tipo === "cursado") return `Curso ${cursoNombre ?? ""}${p}`.replace(/\s+/g, " ");
   if (tipo === "inscripcion") return `Inscripción ${cursoNombre ?? ""}`.trim();
   return "";
+}
+
+/** Ítems de un mismo concepto agrupados (ej. cuota societaria de octubre a diciembre). */
+export interface GrupoItems {
+  tipo: TipoItem;
+  curso_id: number | null;
+  /** Concepto sin el mes: "Cuota societaria", "Curso Segundo", "Inscripción Primero"… */
+  concepto: string;
+  periodos: string[];
+  monto: number;
+}
+
+/** Concepto de un ítem sin el mes ("Curso Segundo Octubre 2026" -> "Curso Segundo"). */
+function conceptoBase(i: ReciboItem): string {
+  if (i.tipo === "cuota_social") return "Cuota societaria";
+  return i.periodo ? i.concepto.replace(formatoPeriodo(i.periodo), "").trim() : i.concepto;
+}
+
+export function agruparItems(items: ReciboItem[]): GrupoItems[] {
+  const grupos = new Map<string, GrupoItems>();
+  for (const i of items) {
+    const concepto = conceptoBase(i);
+    const clave = `${i.tipo}|${i.curso_id ?? ""}|${concepto}`;
+    let g = grupos.get(clave);
+    if (!g) {
+      g = { tipo: i.tipo, curso_id: i.curso_id, concepto, periodos: [], monto: 0 };
+      grupos.set(clave, g);
+    }
+    if (i.periodo) g.periodos.push(i.periodo);
+    g.monto += i.monto;
+  }
+  return [...grupos.values()];
+}
+
+/** "Cuota societaria Octubre a Diciembre 2026" */
+export function describirGrupo(g: GrupoItems): string {
+  return g.periodos.length ? `${g.concepto} ${describirPeriodos(g.periodos)}` : g.concepto;
+}
+
+/** Resumen de un recibo para listados: "Cuota societaria Octubre 2026 + Curso Segundo Octubre 2026". */
+export function describirRecibo(items: ReciboItem[]): string {
+  return agruparItems(items).map(describirGrupo).join(" + ");
 }
 
 /**

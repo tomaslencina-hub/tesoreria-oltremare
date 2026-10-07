@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import type { Configuracion } from "./config";
 import { fecha, moneda, numeroRecibo, periodo } from "./format";
-import { marcarEnviado } from "./pagos";
+import { agruparItems, describirGrupo, marcarEnviado } from "./pagos";
 import type { PendientePersona, ReciboDetalle } from "./tipos";
 
 /**
@@ -32,7 +32,7 @@ export function mensajeRecibo(r: ReciboDetalle, config: Configuracion): string {
     apellido: r.apellido,
     numero: numeroRecibo(r.numero),
     asociacion: config.nombre_asociacion,
-    detalle: lineas(r.items),
+    detalle: lineas(agruparItems(r.items).map((g) => ({ concepto: describirGrupo(g), monto: g.monto }))),
     total: moneda(r.total),
     fecha: fecha(r.fecha),
     medio: r.medio_pago,

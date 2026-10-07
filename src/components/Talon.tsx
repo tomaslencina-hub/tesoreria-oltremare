@@ -1,32 +1,39 @@
 import logo from "../assets/logo-oltremare.png";
 import type { Configuracion } from "../lib/config";
-import { fecha, importe, numeroRecibo, periodo } from "../lib/format";
-import type { ReciboDetalle, ReciboItem } from "../lib/tipos";
+import { describirPeriodos, fecha, importe, numeroRecibo } from "../lib/format";
+import type { GrupoItems } from "../lib/pagos";
+import type { ReciboDetalle } from "../lib/tipos";
 
-/** Título del talón, como en los recibos en papel ("Cuota Curso - 2026"). */
-function titulo(item: ReciboItem, anio: string): string {
-  if (item.tipo === "cuota_social") return `Cuota Societaria - ${anio}`;
-  if (item.tipo === "cursado") return `Cuota Curso - ${anio}`;
-  return item.concepto;
+/** Año (o años) que cubre el talón: "2026" o "2026-2027". */
+function anios(g: GrupoItems, fechaRecibo: string): string {
+  const as = [...new Set((g.periodos.length ? g.periodos : [fechaRecibo]).map((p) => p.slice(0, 4)))].sort();
+  return as.length === 1 ? as[0] : `${as[0]}-${as[as.length - 1]}`;
 }
 
-/** Mes del talón: el período del ítem; en cursado se agrega el nombre del curso. */
-function mes(item: ReciboItem): string {
-  const p = periodo(item.periodo);
-  if (item.tipo !== "cursado") return p || "—";
-  const curso = item.concepto.replace(/^Curso\s+/, "").replace(p, "").trim();
+/** Título del talón, como en los recibos en papel ("Cuota Curso - 2026"). */
+function titulo(g: GrupoItems, anio: string): string {
+  if (g.tipo === "cuota_social") return `Cuota Societaria - ${anio}`;
+  if (g.tipo === "cursado") return `Cuota Curso - ${anio}`;
+  return g.concepto;
+}
+
+/** Mes (o meses) del talón; en cursado se agrega el nombre del curso. */
+function meses(g: GrupoItems): string {
+  const p = describirPeriodos(g.periodos);
+  if (g.tipo !== "cursado") return p || "—";
+  const curso = g.concepto.replace(/^Curso\s+/, "").trim();
   return curso ? `${p} (${curso})` : p;
 }
 
 interface Props {
   recibo: ReciboDetalle;
-  item: ReciboItem;
+  grupo: GrupoItems;
   config: Configuracion;
 }
 
 /** Un talón por concepto, con el mismo formato que los recibos impresos de la asociación. */
-export default function Talon({ recibo, item, config }: Props) {
-  const anio = (item.periodo ?? recibo.fecha).slice(0, 4);
+export default function Talon({ recibo, grupo, config }: Props) {
+  const anio = anios(grupo, recibo.fecha);
   return (
     <div className="talon">
       <div className="talon-cabecera">
@@ -41,13 +48,13 @@ export default function Talon({ recibo, item, config }: Props) {
         <dt>Socio:</dt>
         <dd className="talon-socio">{recibo.apellido.toUpperCase()}, {recibo.nombre.toUpperCase()}</dd>
         <dt>Importe:</dt>
-        <dd>{importe(item.monto)}</dd>
-        <dt>Mes:</dt>
-        <dd>{mes(item)}</dd>
+        <dd>{importe(grupo.monto)}</dd>
+        <dt>{grupo.periodos.length > 1 ? "Meses:" : "Mes:"}</dt>
+        <dd>{meses(grupo)}</dd>
       </dl>
       <div className="talon-pie">
         <div>
-          <strong className="talon-titulo">{titulo(item, anio)}</strong>
+          <strong className="talon-titulo">{titulo(grupo, anio)}</strong>
           <small>Recibo N° {numeroRecibo(recibo.numero)} · {fecha(recibo.fecha)} · <span className="capitalizar">{recibo.medio_pago}</span></small>
         </div>
         <div className="talon-firma">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useConfig } from "../components/ConfigContext";
 import { fecha, hoyISO, moneda, numeroRecibo, periodo, periodoActual } from "../lib/format";
-import { agruparPorPersona, listarPendientes, listarRecibos, resumen, Resumen } from "../lib/pagos";
+import { agruparPorPersona, listarPendientes, listarRecibos, resumen, Resumen, describirRecibo } from "../lib/pagos";
 import { ReciboDetalle } from "../lib/tipos";
 
 export default function Panel({ irA }: { irA: (pagina: "pendientes" | "cobros") => void }) {
@@ -53,7 +53,7 @@ export default function Panel({ irA }: { irA: (pagina: "pendientes" | "cobros") 
               <td>{numeroRecibo(p.numero)}</td>
               <td>{fecha(p.fecha)}</td>
               <td>{p.apellido}, {p.nombre}</td>
-              <td>{p.items.map((i) => i.concepto).join(" + ")}</td>
+              <td>{describirRecibo(p.items)}</td>
               <td className="num">{moneda(p.total)}</td>
             </tr>
           ))}

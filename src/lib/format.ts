@@ -66,3 +66,46 @@ export function periodo(p: string | null | undefined): string {
 export function numeroRecibo(n: number): string {
   return String(n).padStart(6, "0");
 }
+
+/** "2026-11" + 2 -> "2027-01" */
+export function sumarMeses(p: string, n: number): string {
+  const [a, m] = p.split("-").map(Number);
+  const total = a * 12 + (m - 1) + n;
+  return `${Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, "0")}`;
+}
+
+/** Todos los meses entre `desde` y `hasta` inclusive (vacío si hasta < desde). */
+export function rangoMeses(desde: string, hasta: string): string[] {
+  const meses: string[] = [];
+  for (let p = desde; p <= hasta && meses.length < 120; p = sumarMeses(p, 1)) meses.push(p);
+  return meses;
+}
+
+function describirTramo(desde: string, hasta: string): string {
+  if (desde === hasta) return periodo(desde);
+  const [a1, m1] = desde.split("-");
+  const [a2, m2] = hasta.split("-");
+  if (a1 === a2 && m1 === "01" && m2 === "12") return `Año ${a1} completo`;
+  const mes = (p: string) => periodo(p).split(" ")[0];
+  const nexo = sumarMeses(desde, 1) === hasta ? "y" : "a";
+  return a1 === a2 ? `${mes(desde)} ${nexo} ${mes(hasta)} ${a1}` : `${periodo(desde)} ${nexo} ${periodo(hasta)}`;
+}
+
+/**
+ * Describe un conjunto de meses agrupando los consecutivos:
+ * ["2026-10","2026-11","2026-12"] -> "Octubre a Diciembre 2026";
+ * ["2026-10","2026-12"] -> "Octubre 2026 y Diciembre 2026".
+ */
+export function describirPeriodos(periodos: string[]): string {
+  const ps = [...new Set(periodos)].sort();
+  if (ps.length === 0) return "";
+  const tramos: string[] = [];
+  let inicio = ps[0];
+  for (let i = 1; i <= ps.length; i++) {
+    if (i === ps.length || ps[i] !== sumarMeses(ps[i - 1], 1)) {
+      tramos.push(describirTramo(inicio, ps[i - 1]));
+      inicio = ps[i];
+    }
+  }
+  return tramos.length === 1 ? tramos[0] : `${tramos.slice(0, -1).join(", ")} y ${tramos[tramos.length - 1]}`;
+}

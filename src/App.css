@@ -148,7 +148,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(11, 138, 74,
 .item { display: flex; align-items: center; gap: 8px; }
 .item input[type="month"] { width: 150px; }
 .item select { width: 130px; }
-.item-concepto { flex: 1; min-width: 120px; }
+
 .item-monto { width: 110px; text-align: right; }
 .item-excluido { opacity: 0.45; }
 .total-pie { margin-right: auto; font-size: 15px; }
@@ -194,3 +194,13 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .entorno { margin: -8px 4px 14px; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; }
 .entorno-dev { background: #f5b301; color: #2a2000; }
 .entorno-test { background: #3b82f6; color: #fff; }
+
+/* Rango de meses en el cobro */
+.rango-meses { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.rango-meses label { flex: 0 0 auto; }
+.atajos { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 2px; }
+.atajos button { padding: 5px 10px; font-size: 12px; }
+.item-detalle { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 160px; }
+.item-detalle .item-concepto { width: 100%; }
+.item-cantidad { color: var(--muted); font-size: 13px; min-width: 28px; text-align: right; }
+.item-subtotal { min-width: 100px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }

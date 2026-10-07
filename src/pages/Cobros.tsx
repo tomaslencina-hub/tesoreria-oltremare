@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import CobroModal from "../components/CobroModal";
 import ReciboModal from "../components/ReciboModal";
 import { fecha, moneda, numeroRecibo } from "../lib/format";
-import { anularRecibo, listarRecibos } from "../lib/pagos";
+import { anularRecibo, listarRecibos, describirRecibo } from "../lib/pagos";
 import { ReciboDetalle } from "../lib/tipos";
 
 export default function Cobros() {
@@ -63,7 +63,7 @@ export default function Cobros() {
               <td>{numeroRecibo(r.numero)}</td>
               <td>{fecha(r.fecha)}</td>
               <td>{r.apellido}, {r.nombre}</td>
-              <td>{r.items.map((i) => i.concepto).join(" + ")}{r.anulado ? " (ANULADO)" : ""}</td>
+              <td>{describirRecibo(r.items)}{r.anulado ? " (ANULADO)" : ""}</td>
               <td className="num">{moneda(r.total)}</td>
               <td>{r.enviado_whatsapp_en ? "✓ Enviado" : "—"}</td>
               <td className="acciones">

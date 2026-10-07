@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { numeroRecibo } from "../lib/format";
 import { copiarComoImagen } from "../lib/imagen";
+import { agruparItems } from "../lib/pagos";
 import type { ReciboDetalle } from "../lib/tipos";
 import { enviarReciboWhatsApp } from "../lib/whatsapp";
 import { useConfig } from "./ConfigContext";
@@ -71,8 +72,8 @@ export default function ReciboModal({ recibo, onCerrar, onEnviado }: Props) {
       }
     >
       <div className="talones" id="recibo-imprimible" ref={talones}>
-        {recibo.items.map((item, i) => (
-          <Talon key={item.id ?? i} recibo={recibo} item={item} config={config} />
+        {agruparItems(recibo.items).map((g) => (
+          <Talon key={`${g.tipo}-${g.curso_id}-${g.concepto}`} recibo={recibo} grupo={g} config={config} />
         ))}
       </div>
     </Modal>
