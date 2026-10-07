@@ -1,5 +1,9 @@
-//! Envío automático por WhatsApp Desktop: abre el chat con el mensaje escrito, lo envía,
-//! pega la imagen del recibo (que el frontend ya dejó en el portapapeles) y la envía.
+//! Envío por WhatsApp Desktop.
+//!
+//! Con imagen (recibos): abre el chat, pega la imagen de los talones (que el frontend ya dejó
+//! en el portapapeles) y pega el mensaje como texto de la imagen. Sin imagen (recordatorios):
+//! abre el chat con el mensaje escrito. En ambos casos queda listo para que la persona revise
+//! y apriete Enviar; solo con `enviar = true` la app aprieta Enviar sola.
 //!
 //! Antes de cada tecla se verifica que la ventana activa sea WhatsApp; si no lo es
 //! (no está instalado, tardó demasiado o el usuario cambió de ventana) se corta sin tocar nada.
@@ -9,13 +13,14 @@ use std::time::{Duration, Instant};
 
 use enigo::{Direction, Enigo, Key, Keyboard, Settings};
 use tauri::AppHandle;
+use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
 
 /// Tiempo máximo para que aparezca la ventana de WhatsApp.
 const ESPERA_VENTANA: Duration = Duration::from_secs(15);
 /// Margen para que cargue el chat después de que la ventana quedó al frente.
 const ESPERA_CHAT: Duration = Duration::from_millis(2500);
-/// Margen entre envío de texto, pegado de imagen y envío de la imagen.
+/// Margen entre pasos (pegar imagen, pegar texto, enviar).
 const ESPERA_PASO: Duration = Duration::from_millis(1200);
 
 #[cfg(windows)]
@@ -42,12 +47,8 @@ fn asegurar_whatsapp() -> Result<(), String> {
     if whatsapp_al_frente() {
         Ok(())
     } else {
-        Err("Se perdió el foco de WhatsApp; el envío se detuvo. Revisá el chat y completalo a mano.".into())
+        Err("Se perdió el foco de WhatsApp; se detuvo. Revisá el chat y completalo a mano.".into())
     }
-}
-
-fn tecla(enigo: &mut Enigo, key: Key) -> Result<(), String> {
-    enigo.key(key, Direction::Click).map_err(|e| e.to_string())
 }
 
 fn pegar(enigo: &mut Enigo) -> Result<(), String> {
@@ -57,7 +58,12 @@ fn pegar(enigo: &mut Enigo) -> Result<(), String> {
     r
 }
 
-fn enviar(app: &AppHandle, url: &str, con_imagen: bool) -> Result<(), String> {
+fn abrir_chat(app: &AppHandle, telefono: &str, texto: Option<&str>) -> Result<(), String> {
+    let mut url = format!("whatsapp://send?phone={telefono}");
+    if let Some(t) = texto {
+        url.push_str("&text=");
+        url.push_str(&urlencoding::encode(t));
+    }
     app.opener()
         .open_url(url, None::<&str>)
         .map_err(|e| format!("No se pudo abrir WhatsApp Desktop: {e}"))?;
@@ -69,34 +75,58 @@ fn enviar(app: &AppHandle, url: &str, con_imagen: bool) -> Result<(), String> {
         }
         sleep(Duration::from_millis(200));
     }
-    sleep(ESPERA_CHAT);
-
-    let mut enigo = Enigo::new(&Settings::default()).map_err(|e| e.to_string())?;
-
-    // 1) El mensaje ya está escrito en el chat: enviarlo.
-    asegurar_whatsapp()?;
-    tecla(&mut enigo, Key::Return)?;
-    if !con_imagen {
-        return Ok(());
-    }
-    sleep(ESPERA_PASO);
-
-    // 2) Pegar la imagen (abre la vista previa) y 3) enviarla.
-    asegurar_whatsapp()?;
-    pegar(&mut enigo)?;
-    sleep(ESPERA_PASO);
-    asegurar_whatsapp()?;
-    tecla(&mut enigo, Key::Return)?;
     Ok(())
 }
 
-/// `url` debe ser un enlace `whatsapp://send?...` armado por el frontend.
-#[tauri::command]
-pub async fn enviar_whatsapp_desktop(app: AppHandle, url: String, con_imagen: bool) -> Result<(), String> {
-    if !url.starts_with("whatsapp://send?") {
-        return Err("Enlace de WhatsApp inválido".into());
+fn preparar(app: &AppHandle, telefono: &str, texto: &str, con_imagen: bool, enviar: bool) -> Result<(), String> {
+    if !con_imagen {
+        // El mensaje queda escrito en el chat; no hace falta tocar el teclado salvo para enviar.
+        abrir_chat(app, telefono, Some(texto))?;
+        if enviar {
+            sleep(ESPERA_CHAT);
+            asegurar_whatsapp()?;
+            let mut enigo = Enigo::new(&Settings::default()).map_err(|e| e.to_string())?;
+            enigo.key(Key::Return, Direction::Click).map_err(|e| e.to_string())?;
+        }
+        return Ok(());
     }
-    tauri::async_runtime::spawn_blocking(move || enviar(&app, &url, con_imagen))
+
+    abrir_chat(app, telefono, None)?;
+    sleep(ESPERA_CHAT);
+    let mut enigo = Enigo::new(&Settings::default()).map_err(|e| e.to_string())?;
+
+    // 1) Pegar la imagen: WhatsApp abre la vista previa con el campo de texto de la imagen.
+    asegurar_whatsapp()?;
+    pegar(&mut enigo)?;
+    sleep(ESPERA_PASO);
+
+    // 2) Pegar el mensaje como texto de la imagen (pegado, no tipeado: los saltos de línea no envían).
+    app.clipboard().write_text(texto.to_string()).map_err(|e| e.to_string())?;
+    asegurar_whatsapp()?;
+    pegar(&mut enigo)?;
+
+    // 3) Enviar solo si se pidió; si no, queda en la vista previa para revisar.
+    if enviar {
+        sleep(ESPERA_PASO);
+        asegurar_whatsapp()?;
+        enigo.key(Key::Return, Direction::Click).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// `telefono`: solo dígitos, en formato internacional (549...).
+#[tauri::command]
+pub async fn enviar_whatsapp_desktop(
+    app: AppHandle,
+    telefono: String,
+    texto: String,
+    con_imagen: bool,
+    enviar: bool,
+) -> Result<(), String> {
+    if telefono.is_empty() || !telefono.chars().all(|c| c.is_ascii_digit()) {
+        return Err("Teléfono inválido".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || preparar(&app, &telefono, &texto, con_imagen, enviar))
         .await
         .map_err(|e| e.to_string())?
 }

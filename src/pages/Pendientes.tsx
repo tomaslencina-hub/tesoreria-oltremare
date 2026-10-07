@@ -15,6 +15,7 @@ export default function Pendientes() {
   const [cobrando, setCobrando] = useState<PendientePersona | null>(null);
   const [recibo, setRecibo] = useState<ReciboDetalle | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     setFilas(agruparPorPersona(await listarPendientes(periodo, config.cuota_social)));
@@ -27,7 +28,11 @@ export default function Pendientes() {
   async function recordar(p: PendientePersona) {
     try {
       setError(null);
-      await enviarRecordatorioWhatsApp(p, periodo, config);
+      setAviso(null);
+      const modo = await enviarRecordatorioWhatsApp(p, periodo, config);
+      setAviso(modo === "enviado"
+        ? `Recordatorio enviado a ${p.nombre} ${p.apellido}.`
+        : `Recordatorio para ${p.nombre} ${p.apellido} listo en WhatsApp: revisalo y apretá Enviar.`);
     } catch (e) {
       setError(String(e));
     }
@@ -57,6 +62,7 @@ export default function Pendientes() {
       <div className="filtros">
         <input placeholder="Buscar por nombre…" value={texto} onChange={(e) => setTexto(e.target.value)} />
         {error && <span className="error">{error}</span>}
+        {aviso && <span className="ok">{aviso}</span>}
       </div>
 
       <table className="tabla">

@@ -41,16 +41,18 @@ export default function ReciboModal({ recibo, onCerrar, onEnviado }: Props) {
       setAviso("Imagen copiada. Pegala con Ctrl+V donde quieras.");
     });
 
-  // Copia la imagen y la envía junto con el mensaje (automático con WhatsApp Desktop).
+  // Copia la imagen y la deja lista en WhatsApp con el mensaje; se envía solo si así está configurado.
   const enviar = () =>
     accion(async () => {
       await copiarComoImagen(talones.current!);
-      if (config.envio_automatico) setAviso("Enviando por WhatsApp… no uses el mouse ni el teclado unos segundos.");
+      setAviso("Abriendo WhatsApp… no uses el mouse ni el teclado unos segundos.");
       const modo = await enviarReciboWhatsApp(recibo, config);
       setEnviado(true);
-      setAviso(modo === "automatico"
-        ? "Recibo enviado por WhatsApp."
-        : "Se abrió WhatsApp. Enviá el mensaje y después pegá la imagen con Ctrl+V.");
+      setAviso({
+        enviado: "Recibo enviado por WhatsApp.",
+        preparado: "Listo en WhatsApp: revisá el recibo y apretá Enviar cuando quieras.",
+        manual: "Se abrió WhatsApp Web con el mensaje. Pegá la imagen del recibo con Ctrl+V y enviá.",
+      }[modo]);
       onEnviado?.();
     });
 
@@ -66,7 +68,9 @@ export default function ReciboModal({ recibo, onCerrar, onEnviado }: Props) {
           <button onClick={() => window.print()}>Imprimir</button>
           <button onClick={copiar} disabled={ocupado}>Copiar imagen</button>
           <button className="btn-whatsapp" onClick={enviar} disabled={ocupado || !!recibo.anulado}>
-            {enviado ? "Reenviar por WhatsApp" : "Enviar por WhatsApp"}
+            {config.envio_automatico
+              ? (enviado ? "Reenviar por WhatsApp" : "Enviar por WhatsApp")
+              : (enviado ? "Abrir de nuevo en WhatsApp" : "Abrir en WhatsApp")}
           </button>
         </>
       }

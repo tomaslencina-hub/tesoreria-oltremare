@@ -52,7 +52,7 @@ export default function Configuracion() {
         </label>
         <label className="check">
           <input type="checkbox" checked={c.envio_automatico} onChange={(e) => setC({ ...c, envio_automatico: e.target.checked })} />
-          Enviar automáticamente con WhatsApp Desktop
+          Enviar sin revisar (la app aprieta Enviar sola)
         </label>
         <label className="col-2">
           Mensaje que acompaña al recibo

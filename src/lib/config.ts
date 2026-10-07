@@ -10,7 +10,7 @@ export interface Configuracion {
   personeria: string;
   cuit: string;
   firmante: string;
-  /** Enviar solo con WhatsApp Desktop (texto + imagen) en vez de dejar el chat listo para pegar. */
+  /** Que la app apriete Enviar en WhatsApp. Si no, deja el mensaje listo para que la persona lo envíe. */
   envio_automatico: boolean;
 }
 
@@ -29,7 +29,7 @@ export async function leerConfiguracion(): Promise<Configuracion> {
     personeria: m.personeria ?? "",
     cuit: m.cuit ?? "",
     firmante: m.firmante ?? "Tesorero",
-    envio_automatico: (m.envio_automatico ?? "1") === "1",
+    envio_automatico: m.whatsapp_enviar_solo === "1",
   };
 }
 
@@ -44,7 +44,7 @@ export async function guardarConfiguracion(c: Configuracion) {
     ["personeria", c.personeria],
     ["cuit", c.cuit],
     ["firmante", c.firmante],
-    ["envio_automatico", c.envio_automatico ? "1" : "0"],
+    ["whatsapp_enviar_solo", c.envio_automatico ? "1" : "0"],
   ];
   for (const [clave, valor] of pares) {
     await execute(

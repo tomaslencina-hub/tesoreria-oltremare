@@ -53,30 +53,31 @@ export function mensajeRecordatorio(p: PendientePersona, per: string, config: Co
   });
 }
 
-/** "automatico": WhatsApp Desktop envió solo. "manual": quedó el chat abierto para completar a mano. */
-export type ModoEnvio = "automatico" | "manual";
+/**
+ * "enviado": WhatsApp Desktop lo envió solo (opción de Configuración).
+ * "preparado": quedó listo en WhatsApp Desktop para revisar y apretar Enviar.
+ * "manual": no hay WhatsApp Desktop; se abrió WhatsApp Web y la imagen quedó copiada para pegar.
+ */
+export type ModoEnvio = "enviado" | "preparado" | "manual";
 
 async function enviar(
   telefono: string | null, nombre: string, texto: string, config: Configuracion, conImagen: boolean,
 ): Promise<ModoEnvio> {
   const tel = telefono ? normalizarTelefono(telefono, config.prefijo_whatsapp) : null;
   if (!tel) throw new Error(`${nombre} no tiene teléfono cargado`);
-  const msj = encodeURIComponent(texto);
-  if (config.envio_automatico) {
-    try {
-      await invoke("enviar_whatsapp_desktop", { url: `whatsapp://send?phone=${tel}&text=${msj}`, conImagen });
-      return "automatico";
-    } catch (e) {
-      // Si WhatsApp Desktop no llegó a abrirse no se tocó nada: se sigue por WhatsApp Web.
-      if (!/No se (pudo abrir|abrió) WhatsApp Desktop/.test(String(e))) throw new Error(String(e));
-    }
+  try {
+    await invoke("enviar_whatsapp_desktop", { telefono: tel, texto, conImagen, enviar: config.envio_automatico });
+    return config.envio_automatico ? "enviado" : "preparado";
+  } catch (e) {
+    // Si WhatsApp Desktop no llegó a abrirse no se tocó nada: se sigue por WhatsApp Web.
+    if (!/No se (pudo abrir|abrió) WhatsApp Desktop/.test(String(e))) throw new Error(String(e));
   }
-  await openUrl(`https://wa.me/${tel}?text=${msj}`);
+  await openUrl(`https://wa.me/${tel}?text=${encodeURIComponent(texto)}`);
   return "manual";
 }
 
 /**
- * Envía el recibo y lo marca como enviado. La imagen de los talones ya tiene que estar
+ * Lleva el recibo a WhatsApp y lo marca como enviado. La imagen de los talones ya tiene que estar
  * en el portapapeles (ver copiarComoImagen).
  */
 export async function enviarReciboWhatsApp(r: ReciboDetalle, config: Configuracion): Promise<ModoEnvio> {
