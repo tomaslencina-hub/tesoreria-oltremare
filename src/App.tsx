@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { getIdentifier } from "@tauri-apps/api/app";
+import { useEffect, useState } from "react";
 import "./App.css";
 import logo from "./assets/logo-oltremare.png";
 import { ConfigProvider, useConfigCtx } from "./components/ConfigContext";
@@ -23,6 +24,12 @@ const MENU: { id: Pagina; texto: string }[] = [
 function Contenido() {
   const { config, error } = useConfigCtx();
   const [pagina, setPagina] = useState<Pagina>("panel");
+  const [entorno, setEntorno] = useState<"dev" | "test" | null>(null);
+
+  // El identificador cambia por entorno (ver src-tauri/tauri.*.conf.json), y con él la base de datos.
+  useEffect(() => {
+    getIdentifier().then((id) => setEntorno(id.endsWith(".dev") ? "dev" : id.endsWith(".test") ? "test" : null));
+  }, []);
 
   if (error) return <div className="cargando error">No se pudo abrir la base de datos: {error}</div>;
   if (!config) return <div className="cargando">Cargando…</div>;
@@ -34,6 +41,11 @@ function Contenido() {
           <img src={logo} alt={config.nombre_asociacion} />
           <small>Tesorería</small>
         </div>
+        {entorno && (
+          <div className={`entorno entorno-${entorno}`}>
+            {entorno === "dev" ? "Desarrollo" : "Prueba"} — datos de prueba
+          </div>
+        )}
         {MENU.map((m) => (
           <button key={m.id} className={pagina === m.id ? "activo" : ""} onClick={() => setPagina(m.id)}>
             {m.texto}

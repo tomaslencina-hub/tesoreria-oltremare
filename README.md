@@ -8,9 +8,23 @@ Hecha con [Tauri 2](https://tauri.app) + React + TypeScript. Los datos se guarda
 
 ```bash
 npm install
-npm run tauri dev     # abre la app en modo desarrollo
-npm run tauri build   # genera el instalador en src-tauri/target/release/bundle
+npm run app:dev       # app en modo desarrollo (base de datos de DESARROLLO)
+npm run app:test      # igual, pero con la base de PRUEBA
+npm run build:test    # instalador de prueba
+npm run build:prod    # instalador definitivo (src-tauri/target/release/bundle)
 ```
+
+## Ramas y entornos
+
+| Rama | Para qué | Base de datos | GitHub Actions |
+|---|---|---|---|
+| `develop` | Desarrollo diario; acá se suman los cambios | `com.oltremare.tesoreria.dev` | Verifica que compile |
+| `test` | Probar una versión antes de usarla de verdad | `com.oltremare.tesoreria.test` | Genera el instalador de prueba (en *Actions → artefactos*) |
+| `production` | Lo que usa la tesorería | `com.oltremare.tesoreria` | Publica el instalador como *Release* (borrador) |
+
+Cada entorno es una app distinta con su propia base de datos (en `%APPDATA%\<identificador>`), así que probar nunca toca los datos reales. Las versiones de desarrollo y prueba muestran un distintivo de color en el menú.
+
+Flujo: trabajar en `develop` → merge a `test` y probar el instalador → merge a `production`. Antes de publicar una versión nueva, subir el número en `package.json`, `src-tauri/Cargo.toml` y `src-tauri/tauri.conf.json`.
 
 ## Funcionalidades
 
