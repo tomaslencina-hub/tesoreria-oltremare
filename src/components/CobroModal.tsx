@@ -7,6 +7,7 @@ import {
 import { conceptoPara, listarPendientes, registrarRecibo } from "../lib/pagos";
 import { Curso, MEDIOS_PAGO, Persona, ReciboDetalle, ReciboItem, TIPOS_ITEM, TipoItem } from "../lib/tipos";
 import { useConfig } from "./ConfigContext";
+import { useConfirmar } from "./Confirmar";
 import Modal from "./Modal";
 
 interface Props {
@@ -38,6 +39,7 @@ const cantidad = (f: Fila) => Math.max(1, f.periodos.length);
 
 export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
   const config = useConfig();
+  const confirmar = useConfirmar();
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [busqueda, setBusqueda] = useState("");
@@ -156,7 +158,17 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
       );
       if (dup.length) duplicados.push(`${i.concepto} (recibo N° ${dup[0].numero})`);
     }
-    if (duplicados.length && !confirm(`Ya están pagos:\n${duplicados.join("\n")}\n\n¿Registrar igual?`)) return;
+    if (duplicados.length && !(await confirmar({
+      titulo: "Hay meses que ya están pagos",
+      aceptar: "Registrar igual",
+      mensaje: (
+        <>
+          <p>Estos conceptos ya figuran en otro recibo:</p>
+          <ul>{duplicados.map((d) => <li key={d}>{d}</li>)}</ul>
+          <p>¿Querés registrarlos de nuevo?</p>
+        </>
+      ),
+    }))) return;
 
     setGuardando(true);
     try {
@@ -227,9 +239,9 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
           </div>
         </div>
 
-        <div className="col-2 items">
-          <div className="items-cabecera">
-            <strong>{meses.length > 1 ? `Conceptos (${describirPeriodos(meses)})` : "Conceptos"}</strong>
+        <div className="col-2 conceptos">
+          <div className="conceptos-barra">
+            <strong>Conceptos</strong>
             <span className="items-agregar">
               Agregar:
               {(Object.keys(TIPOS_ITEM) as TipoItem[]).map((t) => (
@@ -237,31 +249,48 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
               ))}
             </span>
           </div>
+          {filas.length > 0 && (
+            <div className="concepto concepto-encabezado">
+              <span />
+              <span>Concepto</span>
+              <span>Meses</span>
+              <span className="num">Importe {meses.length > 1 ? "mensual" : ""}</span>
+              <span className="num">Subtotal</span>
+              <span />
+            </div>
+          )}
           {personaId !== "" && filas.length === 0 && (
-            <p className="muted">No adeuda nada de {describirPeriodos(meses)}. Podés agregar conceptos a mano.</p>
+            <p className="muted conceptos-vacio">No adeuda nada de {describirPeriodos(meses)}. Podés agregar conceptos a mano.</p>
           )}
           {filas.map((f) => (
-            <div key={f.clave} className={`item ${f.incluido ? "" : "item-excluido"}`}>
+            <div key={f.clave} className={`concepto ${f.incluido ? "" : "concepto-excluido"}`}>
               <input type="checkbox" checked={f.incluido} onChange={(e) => cambiar(f.clave, { incluido: e.target.checked })} />
-              <span className={`etiqueta etiqueta-${f.tipo}`}>{TIPOS_ITEM[f.tipo]}</span>
-              {(f.tipo === "cursado" || f.tipo === "inscripcion") && (
-                <select value={f.curso_id ?? ""} onChange={(e) => cambiarCurso(f, Number(e.target.value))}>
-                  {cursos.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                </select>
-              )}
-              <div className="item-detalle">
-                <input className="item-concepto" value={f.concepto} onChange={(e) => cambiar(f.clave, { concepto: e.target.value })} placeholder="Concepto" />
-                {f.periodos.length > 0 && (
-                  <small className="muted">
-                    {describirPeriodos(f.periodos)}
-                    {f.yaPagados.length > 0 && ` · ya pagó ${describirPeriodos(f.yaPagados)}`}
-                  </small>
+              <div className="concepto-nombre">
+                <span className={`etiqueta etiqueta-${f.tipo}`}>{TIPOS_ITEM[f.tipo]}</span>
+                {(f.tipo === "cursado" || f.tipo === "inscripcion") && (
+                  <select value={f.curso_id ?? ""} onChange={(e) => cambiarCurso(f, Number(e.target.value))}>
+                    {cursos.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                  </select>
+                )}
+                {f.tipo === "otro" && (
+                  <input value={f.concepto} onChange={(e) => cambiar(f.clave, { concepto: e.target.value })} placeholder="Descripción" />
                 )}
               </div>
-              <span className="item-cantidad">{f.periodos.length > 1 ? `${f.periodos.length} ×` : ""}</span>
-              <input className="item-monto" value={f.monto} onChange={(e) => cambiar(f.clave, { monto: e.target.value })} inputMode="decimal" placeholder="0,00"
-                title={f.periodos.length > 1 ? "Importe por mes" : "Importe"} />
-              <span className="item-subtotal">{moneda(aCentavos(f.monto) * cantidad(f))}</span>
+              <div className="concepto-meses">
+                {f.periodos.length > 0
+                  ? <span title={describirPeriodos(f.periodos)}>{describirPeriodos(f.periodos)}</span>
+                  : <span className="muted">Pago único</span>}
+                {f.yaPagados.length > 0 && (
+                  <span className="chip-pagado" title={`Ya pagó ${describirPeriodos(f.yaPagados)}`}>
+                    ✓ Ya pagó {describirPeriodos(f.yaPagados)}
+                  </span>
+                )}
+              </div>
+              <div className="concepto-importe">
+                {f.periodos.length > 1 && <span>{f.periodos.length} ×</span>}
+                <input value={f.monto} onChange={(e) => cambiar(f.clave, { monto: e.target.value })} inputMode="decimal" placeholder="0,00" />
+              </div>
+              <span className="concepto-subtotal">{moneda(aCentavos(f.monto) * cantidad(f))}</span>
               <button type="button" className="btn-icono" title="Quitar" onClick={() => setFilas((xs) => xs.filter((x) => x.clave !== f.clave))}>×</button>
             </div>
           ))}

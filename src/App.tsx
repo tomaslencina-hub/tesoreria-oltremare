@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import logo from "./assets/logo-oltremare.png";
 import { ConfigProvider, useConfigCtx } from "./components/ConfigContext";
+import { ConfirmarProvider } from "./components/Confirmar";
 import Cobros from "./pages/Cobros";
 import Configuracion from "./pages/Configuracion";
 import Cursos from "./pages/Cursos";
@@ -67,7 +68,9 @@ function Contenido() {
 export default function App() {
   return (
     <ConfigProvider>
-      <Contenido />
+      <ConfirmarProvider>
+        <Contenido />
+      </ConfirmarProvider>
     </ConfigProvider>
   );
 }

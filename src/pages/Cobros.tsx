@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import CobroModal from "../components/CobroModal";
+import { useConfirmar } from "../components/Confirmar";
 import ReciboModal from "../components/ReciboModal";
 import { fecha, moneda, numeroRecibo } from "../lib/format";
 import { anularRecibo, listarRecibos, describirRecibo } from "../lib/pagos";
@@ -12,6 +13,7 @@ export default function Cobros() {
   const [hasta, setHasta] = useState("");
   const [nuevo, setNuevo] = useState(false);
   const [recibo, setRecibo] = useState<ReciboDetalle | null>(null);
+  const confirmar = useConfirmar();
 
   const cargar = useCallback(async () => {
     setRecibos(await listarRecibos({ texto, desde, hasta }));
@@ -22,7 +24,26 @@ export default function Cobros() {
   }, [cargar]);
 
   async function anular(r: ReciboDetalle) {
-    if (!confirm(`¿Anular el recibo N° ${numeroRecibo(r.numero)}? Esta acción no se puede deshacer.`)) return;
+    const ok = await confirmar({
+      titulo: `Anular recibo N° ${numeroRecibo(r.numero)}`,
+      aceptar: "Anular recibo",
+      peligro: true,
+      mensaje: (
+        <>
+          <dl className="resumen">
+            <dt>Persona</dt><dd>{r.apellido}, {r.nombre}</dd>
+            <dt>Fecha</dt><dd>{fecha(r.fecha)}</dd>
+            <dt>Detalle</dt><dd>{describirRecibo(r.items)}</dd>
+            <dt>Total</dt><dd><strong>{moneda(r.total)}</strong></dd>
+          </dl>
+          <p className="aviso-peligro">
+            El recibo queda registrado como anulado y esos meses vuelven a figurar como pendientes.
+            No se puede deshacer.
+          </p>
+        </>
+      ),
+    });
+    if (!ok) return;
     await anularRecibo(r.id);
     cargar();
   }

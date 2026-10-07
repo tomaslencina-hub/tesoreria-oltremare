@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 
 interface Props {
   titulo: string;
@@ -8,12 +8,25 @@ interface Props {
   ancho?: number;
 }
 
+/** Modales abiertos, del más viejo al más nuevo: Escape cierra solo el de arriba. */
+const pila: symbol[] = [];
+
 export default function Modal({ titulo, onCerrar, children, pie, ancho = 560 }: Props) {
+  const id = useRef(Symbol("modal")).current;
+  const cerrar = useRef(onCerrar);
+  cerrar.current = onCerrar;
+
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
+    pila.push(id);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && pila[pila.length - 1] === id) cerrar.current();
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCerrar]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      pila.splice(pila.indexOf(id), 1);
+    };
+  }, [id]);
 
   return (
     <div className="modal-fondo" onMouseDown={onCerrar}>

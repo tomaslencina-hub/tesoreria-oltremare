@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --verde: #0b8a4a;
   --verde-oscuro: #08703c;
   --rojo: #c8313e;
@@ -141,16 +141,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(11, 138, 74,
 .buscador-persona { display: flex; gap: 8px; }
 .buscador-persona input { width: 180px; }
 .buscador-persona select { flex: 1; }
-.items { border: 1px solid var(--borde); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-.items-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .items-agregar { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
 .items-agregar button { padding: 3px 8px; font-size: 12px; }
-.item { display: flex; align-items: center; gap: 8px; }
-.item input[type="month"] { width: 150px; }
-.item select { width: 130px; }
 
-.item-monto { width: 110px; text-align: right; }
-.item-excluido { opacity: 0.45; }
 .total-pie { margin-right: auto; font-size: 15px; }
 .etiqueta + .etiqueta { margin-left: 4px; }
 .etiqueta-inscripcion { background: #e6eefb; color: #2c5aa0; }
@@ -200,7 +193,34 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .rango-meses label { flex: 0 0 auto; }
 .atajos { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 2px; }
 .atajos button { padding: 5px 10px; font-size: 12px; }
-.item-detalle { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 160px; }
-.item-detalle .item-concepto { width: 100%; }
-.item-cantidad { color: var(--muted); font-size: 13px; min-width: 28px; text-align: right; }
-.item-subtotal { min-width: 100px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* Conceptos del cobro: grilla alineada */
+.conceptos { border: 1px solid var(--borde); border-radius: 8px; overflow: hidden; }
+.conceptos-barra { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 12px; background: #f9fafb; border-bottom: 1px solid var(--borde); }
+.conceptos-vacio { padding: 14px 12px; }
+.concepto {
+  display: grid; grid-template-columns: 22px minmax(190px, 1.1fr) minmax(0, 1.3fr) 150px 104px 26px;
+  align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--borde);
+}
+.concepto:last-child { border-bottom: none; }
+.concepto-encabezado { padding: 7px 12px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.concepto-encabezado .num { text-align: right; }
+.concepto-excluido > *:not(input[type="checkbox"]) { opacity: 0.4; }
+.concepto-nombre { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.concepto-nombre select, .concepto-nombre input { flex: 1; min-width: 0; padding: 5px 8px; }
+.concepto-meses { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 13px; }
+.concepto-meses > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip-pagado { align-self: flex-start; max-width: 100%; font-size: 11px; color: var(--verde-oscuro); background: #e3f3ea; padding: 1px 8px; border-radius: 10px; }
+.concepto-importe { display: flex; align-items: center; justify-content: flex-end; gap: 6px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.concepto-importe input { width: 96px; text-align: right; padding: 5px 8px; }
+.concepto-subtotal { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Diálogo de confirmación */
+.confirmar-mensaje p { margin: 0 0 10px; }
+.confirmar-mensaje ul { margin: 0 0 10px; padding-left: 20px; }
+.resumen { display: grid; grid-template-columns: 80px 1fr; gap: 6px 12px; margin: 0 0 14px; padding: 12px 14px; background: #f9fafb; border: 1px solid var(--borde); border-radius: 6px; }
+.resumen dt { color: var(--muted); }
+.resumen dd { margin: 0; }
+.aviso-peligro { color: #8f1d27; background: #fdecee; border-radius: 6px; padding: 10px 12px; margin: 0 !important; font-size: 13px; }
+.btn-peligro-lleno { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+.btn-peligro-lleno:hover { background: #a82731; border-color: #a82731; }
