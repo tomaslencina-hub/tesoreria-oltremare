@@ -5,6 +5,7 @@ export interface Configuracion {
   cuota_social: number; // centavos
   prefijo_whatsapp: string;
   plantilla_whatsapp: string;
+  plantilla_recordatorio: string;
 }
 
 export async function leerConfiguracion(): Promise<Configuracion> {
@@ -17,6 +18,7 @@ export async function leerConfiguracion(): Promise<Configuracion> {
     cuota_social: Number(m.cuota_social ?? 0),
     prefijo_whatsapp: m.prefijo_whatsapp ?? "549",
     plantilla_whatsapp: m.plantilla_whatsapp ?? "",
+    plantilla_recordatorio: m.plantilla_recordatorio ?? "",
   };
 }
 
@@ -26,6 +28,7 @@ export async function guardarConfiguracion(c: Configuracion) {
     ["cuota_social", String(c.cuota_social)],
     ["prefijo_whatsapp", c.prefijo_whatsapp],
     ["plantilla_whatsapp", c.plantilla_whatsapp],
+    ["plantilla_recordatorio", c.plantilla_recordatorio],
   ];
   for (const [clave, valor] of pares) {
     await execute(

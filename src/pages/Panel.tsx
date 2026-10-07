@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
 import { useConfig } from "../components/ConfigContext";
 import { fecha, hoyISO, moneda, numeroRecibo, periodo, periodoActual } from "../lib/format";
-import { listarPagos, listarPendientes, resumen, Resumen } from "../lib/pagos";
-import { PagoDetalle } from "../lib/tipos";
+import { agruparPorPersona, listarPendientes, listarRecibos, resumen, Resumen } from "../lib/pagos";
+import { ReciboDetalle } from "../lib/tipos";
 
 export default function Panel({ irA }: { irA: (pagina: "pendientes" | "cobros") => void }) {
   const config = useConfig();
   const [datos, setDatos] = useState<Resumen | null>(null);
   const [pendientes, setPendientes] = useState({ cantidad: 0, total: 0 });
-  const [ultimos, setUltimos] = useState<PagoDetalle[]>([]);
+  const [ultimos, setUltimos] = useState<ReciboDetalle[]>([]);
   const mes = periodoActual();
 
   useEffect(() => {
     resumen(mes, hoyISO()).then(setDatos);
     listarPendientes(mes, config.cuota_social).then((f) =>
-      setPendientes({ cantidad: f.length, total: f.reduce((s, x) => s + x.monto, 0) }),
+      setPendientes({ cantidad: agruparPorPersona(f).length, total: f.reduce((s, x) => s + x.monto, 0) }),
     );
-    listarPagos().then((p) => setUltimos(p.slice(0, 8)));
+    listarRecibos({ limite: 8 }).then(setUltimos);
   }, [mes, config.cuota_social]);
 
   return (
@@ -38,23 +38,23 @@ export default function Panel({ irA }: { irA: (pagina: "pendientes" | "cobros") 
         <button className="tarjeta tarjeta-accion" onClick={() => irA("pendientes")}>
           <span>Pendiente del mes</span>
           <strong>{moneda(pendientes.total)}</strong>
-          <small>{pendientes.cantidad} cobros pendientes →</small>
+          <small>{pendientes.cantidad} personas adeudan →</small>
         </button>
       </div>
 
       <h2>Últimos cobros</h2>
       <table className="tabla">
         <thead>
-          <tr><th>N°</th><th>Fecha</th><th>Persona</th><th>Concepto</th><th className="num">Monto</th></tr>
+          <tr><th>N°</th><th>Fecha</th><th>Persona</th><th>Detalle</th><th className="num">Total</th></tr>
         </thead>
         <tbody>
           {ultimos.map((p) => (
             <tr key={p.id} className={p.anulado ? "anulado" : ""}>
-              <td>{numeroRecibo(p.numero_recibo)}</td>
+              <td>{numeroRecibo(p.numero)}</td>
               <td>{fecha(p.fecha)}</td>
               <td>{p.apellido}, {p.nombre}</td>
-              <td>{p.concepto}</td>
-              <td className="num">{moneda(p.monto)}</td>
+              <td>{p.items.map((i) => i.concepto).join(" + ")}</td>
+              <td className="num">{moneda(p.total)}</td>
             </tr>
           ))}
           {ultimos.length === 0 && (

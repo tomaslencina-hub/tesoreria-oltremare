@@ -136,3 +136,31 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(11, 138, 74,
   #recibo-imprimible, #recibo-imprimible * { visibility: visible; }
   #recibo-imprimible { position: absolute; top: 0; left: 0; width: 100%; border: none; }
 }
+
+/* Cobro con ítems */
+.buscador-persona { display: flex; gap: 8px; }
+.buscador-persona input { width: 180px; }
+.buscador-persona select { flex: 1; }
+.items { border: 1px solid var(--borde); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.items-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.items-agregar { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+.items-agregar button { padding: 3px 8px; font-size: 12px; }
+.item { display: flex; align-items: center; gap: 8px; }
+.item input[type="month"] { width: 150px; }
+.item select { width: 130px; }
+.item-concepto { flex: 1; min-width: 120px; }
+.item-monto { width: 110px; text-align: right; }
+.item-excluido { opacity: 0.45; }
+.total-pie { margin-right: auto; font-size: 15px; }
+.etiqueta + .etiqueta { margin-left: 4px; }
+.etiqueta-inscripcion { background: #e6eefb; color: #2c5aa0; }
+
+.recibo-items { width: 100%; border-collapse: collapse; margin-top: 16px; }
+.recibo-items td { padding: 6px 0; border-bottom: 1px solid var(--borde); }
+.recibo-items .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Importación */
+.archivo { display: inline-flex; align-items: center; gap: 10px; margin: 8px 0 14px; }
+.archivo input { font-size: 13px; }
+.tabla-scroll { max-height: 360px; overflow: auto; border-radius: var(--radio); }
+code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12px; }

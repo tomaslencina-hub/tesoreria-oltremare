@@ -18,38 +18,45 @@ export interface Curso {
   activo: number;
 }
 
-export type TipoPago = "cursado" | "cuota_social" | "otro";
+export type TipoItem = "cuota_social" | "cursado" | "inscripcion" | "otro";
 
-export const TIPOS_PAGO: Record<TipoPago, string> = {
-  cursado: "Cursado",
+export const TIPOS_ITEM: Record<TipoItem, string> = {
   cuota_social: "Cuota societaria",
+  cursado: "Cursado",
+  inscripcion: "Inscripción",
   otro: "Otro",
 };
 
 export const MEDIOS_PAGO = ["efectivo", "transferencia", "mercado pago", "débito", "otro"];
 
-export interface Pago {
-  id: number;
-  numero_recibo: number;
-  persona_id: number;
-  tipo: TipoPago;
+export interface ReciboItem {
+  id?: number;
+  tipo: TipoItem;
   curso_id: number | null;
   periodo: string | null;
   concepto: string;
   monto: number;
-  medio_pago: string;
+}
+
+export interface Recibo {
+  id: number;
+  numero: number;
+  persona_id: number;
   fecha: string;
+  medio_pago: string;
+  total: number;
   observaciones: string | null;
   anulado: number;
   enviado_whatsapp_en: string | null;
 }
 
-/** Pago con los datos de la persona, para listados y recibos. */
-export interface PagoDetalle extends Pago {
+/** Recibo con los datos de la persona y sus ítems, para listados y para enviar. */
+export interface ReciboDetalle extends Recibo {
   nombre: string;
   apellido: string;
   telefono: string | null;
   dni: string | null;
+  items: ReciboItem[];
 }
 
 /** Un cobro que se espera para un período y todavía no se registró. */
@@ -58,8 +65,18 @@ export interface Pendiente {
   nombre: string;
   apellido: string;
   telefono: string | null;
-  tipo: TipoPago;
+  tipo: "cuota_social" | "cursado";
   curso_id: number | null;
   curso_nombre: string | null;
   monto: number;
+}
+
+/** Pendientes agrupados por persona (una fila = un recibo a cobrar). */
+export interface PendientePersona {
+  persona_id: number;
+  nombre: string;
+  apellido: string;
+  telefono: string | null;
+  items: Pendiente[];
+  total: number;
 }

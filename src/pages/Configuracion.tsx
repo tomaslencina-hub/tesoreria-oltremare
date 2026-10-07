@@ -10,6 +10,7 @@ export default function Configuracion() {
   const [cuota, setCuota] = useState(centavosAInput(config.cuota_social));
   const [prefijo, setPrefijo] = useState(config.prefijo_whatsapp);
   const [plantilla, setPlantilla] = useState(config.plantilla_whatsapp);
+  const [recordatorio, setRecordatorio] = useState(config.plantilla_recordatorio);
   const [mensaje, setMensaje] = useState<string | null>(null);
 
   async function guardar(e: FormEvent) {
@@ -19,6 +20,7 @@ export default function Configuracion() {
       cuota_social: aCentavos(cuota),
       prefijo_whatsapp: prefijo.replace(/\D/g, ""),
       plantilla_whatsapp: plantilla,
+      plantilla_recordatorio: recordatorio,
     });
     await recargar();
     setMensaje("Configuración guardada");
@@ -39,10 +41,16 @@ export default function Configuracion() {
         </label>
         <label className="col-2">
           Mensaje del recibo por WhatsApp
-          <textarea rows={8} value={plantilla} onChange={(e) => setPlantilla(e.target.value)} />
+          <textarea rows={11} value={plantilla} onChange={(e) => setPlantilla(e.target.value)} />
           <small className="muted">
-            Variables: {"{nombre} {apellido} {numero} {asociacion} {concepto} {periodo} {monto} {fecha} {medio}"}
+            Variables: {"{nombre} {apellido} {numero} {asociacion} {detalle} {total} {fecha} {medio}"}.
+            Entre *asteriscos* se ve en negrita en WhatsApp.
           </small>
+        </label>
+        <label className="col-2">
+          Mensaje de recordatorio de pago
+          <textarea rows={7} value={recordatorio} onChange={(e) => setRecordatorio(e.target.value)} />
+          <small className="muted">Variables: {"{nombre} {apellido} {asociacion} {periodo} {detalle} {total}"}</small>
         </label>
         <div className="col-2 fila-botones">
           {mensaje && <span className="ok">{mensaje}</span>}

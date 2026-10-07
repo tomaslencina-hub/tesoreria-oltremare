@@ -1,4 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import ImportarModal from "../components/ImportarModal";
 import Modal from "../components/Modal";
 import { execute, select } from "../lib/db";
 import { Curso, Persona } from "../lib/tipos";
@@ -6,7 +7,7 @@ import { Curso, Persona } from "../lib/tipos";
 type PersonaFila = Persona & { cursos: string | null };
 
 const VACIA: Omit<Persona, "id"> = {
-  nombre: "", apellido: "", dni: "", telefono: "", email: "", es_socio: 0, activo: 1, notas: "",
+  nombre: "", apellido: "", dni: "", telefono: "", email: "", es_socio: 1, activo: 1, notas: "",
 };
 
 export default function Personas() {
@@ -14,6 +15,7 @@ export default function Personas() {
   const [texto, setTexto] = useState("");
   const [filtro, setFiltro] = useState<"activos" | "socios" | "todos">("activos");
   const [editando, setEditando] = useState<Partial<Persona> | null>(null);
+  const [importando, setImportando] = useState(false);
 
   const cargar = useCallback(async () => {
     setFilas(
@@ -42,7 +44,10 @@ export default function Personas() {
           <h1>Alumnos y socios</h1>
           <p className="muted">{filas.length} personas</p>
         </div>
-        <button className="btn-primario" onClick={() => setEditando({ ...VACIA })}>+ Nueva persona</button>
+        <div className="fila-botones">
+          <button onClick={() => setImportando(true)}>Importar CSV</button>
+          <button className="btn-primario" onClick={() => setEditando({ ...VACIA })}>+ Nueva persona</button>
+        </div>
       </header>
 
       <div className="filtros">
@@ -73,6 +78,7 @@ export default function Personas() {
         </tbody>
       </table>
 
+      {importando && <ImportarModal onCerrar={() => setImportando(false)} onImportado={cargar} />}
       {editando && (
         <PersonaModal
           persona={editando}

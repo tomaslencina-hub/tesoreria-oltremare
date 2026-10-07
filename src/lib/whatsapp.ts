@@ -2,7 +2,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import type { Configuracion } from "./config";
 import { fecha, moneda, numeroRecibo, periodo } from "./format";
 import { marcarEnviado } from "./pagos";
-import type { PagoDetalle } from "./tipos";
+import type { PendientePersona, ReciboDetalle } from "./tipos";
 
 /**
  * Normaliza un teléfono al formato internacional que espera WhatsApp (solo dígitos).
@@ -18,26 +18,52 @@ export function normalizarTelefono(telefono: string, prefijo: string): string | 
   return prefijo + d;
 }
 
-export function mensajeRecibo(pago: PagoDetalle, config: Configuracion): string {
-  const valores: Record<string, string> = {
-    nombre: pago.nombre,
-    apellido: pago.apellido,
-    numero: numeroRecibo(pago.numero_recibo),
-    asociacion: config.nombre_asociacion,
-    concepto: pago.concepto,
-    periodo: periodo(pago.periodo) || "-",
-    monto: moneda(pago.monto),
-    fecha: fecha(pago.fecha),
-    medio: pago.medio_pago,
-  };
-  return config.plantilla_whatsapp.replace(/\{(\w+)\}/g, (m, clave) => valores[clave] ?? m);
+function completar(plantilla: string, valores: Record<string, string>): string {
+  return plantilla.replace(/\{(\w+)\}/g, (m, clave) => valores[clave] ?? m);
 }
 
-/** Abre WhatsApp con el mensaje del recibo listo para enviar y marca el pago como enviado. */
-export async function enviarReciboWhatsApp(pago: PagoDetalle, config: Configuracion) {
-  const tel = pago.telefono ? normalizarTelefono(pago.telefono, config.prefijo_whatsapp) : null;
-  if (!tel) throw new Error(`${pago.nombre} ${pago.apellido} no tiene teléfono cargado`);
-  const texto = encodeURIComponent(mensajeRecibo(pago, config));
-  await openUrl(`https://wa.me/${tel}?text=${texto}`);
-  await marcarEnviado(pago.id);
+const lineas = (items: { concepto: string; monto: number }[]) =>
+  items.map((i) => `• ${i.concepto}: ${moneda(i.monto)}`).join("\n");
+
+export function mensajeRecibo(r: ReciboDetalle, config: Configuracion): string {
+  return completar(config.plantilla_whatsapp, {
+    nombre: r.nombre,
+    apellido: r.apellido,
+    numero: numeroRecibo(r.numero),
+    asociacion: config.nombre_asociacion,
+    detalle: lineas(r.items),
+    total: moneda(r.total),
+    fecha: fecha(r.fecha),
+    medio: r.medio_pago,
+  });
+}
+
+export function mensajeRecordatorio(p: PendientePersona, per: string, config: Configuracion): string {
+  return completar(config.plantilla_recordatorio, {
+    nombre: p.nombre,
+    apellido: p.apellido,
+    asociacion: config.nombre_asociacion,
+    periodo: periodo(per),
+    detalle: lineas(p.items.map((i) => ({
+      concepto: i.tipo === "cuota_social" ? "Cuota societaria" : `Curso ${i.curso_nombre}`,
+      monto: i.monto,
+    }))),
+    total: moneda(p.total),
+  });
+}
+
+async function abrirChat(telefono: string | null, nombre: string, texto: string, config: Configuracion) {
+  const tel = telefono ? normalizarTelefono(telefono, config.prefijo_whatsapp) : null;
+  if (!tel) throw new Error(`${nombre} no tiene teléfono cargado`);
+  await openUrl(`https://wa.me/${tel}?text=${encodeURIComponent(texto)}`);
+}
+
+/** Abre WhatsApp con el mensaje del recibo listo para enviar y marca el recibo como enviado. */
+export async function enviarReciboWhatsApp(r: ReciboDetalle, config: Configuracion) {
+  await abrirChat(r.telefono, `${r.nombre} ${r.apellido}`, mensajeRecibo(r, config), config);
+  await marcarEnviado(r.id);
+}
+
+export async function enviarRecordatorioWhatsApp(p: PendientePersona, per: string, config: Configuracion) {
+  await abrirChat(p.telefono, `${p.nombre} ${p.apellido}`, mensajeRecordatorio(p, per, config), config);
 }

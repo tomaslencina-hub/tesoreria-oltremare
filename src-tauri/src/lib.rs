@@ -6,12 +6,20 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 const DB_URL: &str = "sqlite:tesoreria.db";
 
 fn migraciones() -> Vec<Migration> {
-    vec![Migration {
-        version: 1,
-        description: "esquema_inicial",
-        sql: include_str!("../migrations/001_esquema_inicial.sql"),
-        kind: MigrationKind::Up,
-    }]
+    vec![
+        Migration {
+            version: 1,
+            description: "esquema_inicial",
+            sql: include_str!("../migrations/001_esquema_inicial.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "recibos_con_items",
+            sql: include_str!("../migrations/002_recibos_con_items.sql"),
+            kind: MigrationKind::Up,
+        },
+    ]
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

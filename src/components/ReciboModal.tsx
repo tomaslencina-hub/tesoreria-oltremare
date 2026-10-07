@@ -1,26 +1,25 @@
 import { useState } from "react";
-import { fecha, moneda, numeroRecibo, periodo } from "../lib/format";
-import type { PagoDetalle } from "../lib/tipos";
-import { TIPOS_PAGO } from "../lib/tipos";
+import { fecha, moneda, numeroRecibo } from "../lib/format";
+import type { ReciboDetalle } from "../lib/tipos";
 import { enviarReciboWhatsApp } from "../lib/whatsapp";
 import { useConfig } from "./ConfigContext";
 import Modal from "./Modal";
 
 interface Props {
-  pago: PagoDetalle;
+  recibo: ReciboDetalle;
   onCerrar: () => void;
   onEnviado?: () => void;
 }
 
-export default function ReciboModal({ pago, onCerrar, onEnviado }: Props) {
+export default function ReciboModal({ recibo, onCerrar, onEnviado }: Props) {
   const config = useConfig();
   const [error, setError] = useState<string | null>(null);
-  const [enviado, setEnviado] = useState(!!pago.enviado_whatsapp_en);
+  const [enviado, setEnviado] = useState(!!recibo.enviado_whatsapp_en);
 
   async function enviar() {
     try {
       setError(null);
-      await enviarReciboWhatsApp(pago, config);
+      await enviarReciboWhatsApp(recibo, config);
       setEnviado(true);
       onEnviado?.();
     } catch (e) {
@@ -30,14 +29,14 @@ export default function ReciboModal({ pago, onCerrar, onEnviado }: Props) {
 
   return (
     <Modal
-      titulo={`Recibo N° ${numeroRecibo(pago.numero_recibo)}`}
+      titulo={`Recibo N° ${numeroRecibo(recibo.numero)}`}
       onCerrar={onCerrar}
       ancho={620}
       pie={
         <>
           {error && <span className="error">{error}</span>}
           <button onClick={() => window.print()}>Imprimir</button>
-          <button className="btn-whatsapp" onClick={enviar} disabled={!!pago.anulado}>
+          <button className="btn-whatsapp" onClick={enviar} disabled={!!recibo.anulado}>
             {enviado ? "Reenviar por WhatsApp" : "Enviar por WhatsApp"}
           </button>
         </>
@@ -51,36 +50,36 @@ export default function ReciboModal({ pago, onCerrar, onEnviado }: Props) {
           </div>
           <div className="recibo-numero">
             <span>RECIBO</span>
-            <strong>N° {numeroRecibo(pago.numero_recibo)}</strong>
-            <span>{fecha(pago.fecha)}</span>
+            <strong>N° {numeroRecibo(recibo.numero)}</strong>
+            <span>{fecha(recibo.fecha)}</span>
           </div>
         </div>
-        {pago.anulado ? <div className="recibo-anulado">ANULADO</div> : null}
+        {recibo.anulado ? <div className="recibo-anulado">ANULADO</div> : null}
         <dl className="recibo-datos">
           <dt>Recibimos de</dt>
-          <dd>{pago.apellido}, {pago.nombre}{pago.dni ? ` — DNI ${pago.dni}` : ""}</dd>
-          <dt>Tipo</dt>
-          <dd>{TIPOS_PAGO[pago.tipo]}</dd>
-          <dt>Concepto</dt>
-          <dd>{pago.concepto}</dd>
-          {pago.periodo && (
-            <>
-              <dt>Período</dt>
-              <dd>{periodo(pago.periodo)}</dd>
-            </>
-          )}
+          <dd>{recibo.apellido}, {recibo.nombre}{recibo.dni ? ` — DNI ${recibo.dni}` : ""}</dd>
           <dt>Medio de pago</dt>
-          <dd className="capitalizar">{pago.medio_pago}</dd>
-          {pago.observaciones && (
+          <dd className="capitalizar">{recibo.medio_pago}</dd>
+          {recibo.observaciones && (
             <>
               <dt>Observaciones</dt>
-              <dd>{pago.observaciones}</dd>
+              <dd>{recibo.observaciones}</dd>
             </>
           )}
         </dl>
+        <table className="recibo-items">
+          <tbody>
+            {recibo.items.map((i, n) => (
+              <tr key={i.id ?? n}>
+                <td>{i.concepto}</td>
+                <td className="num">{moneda(i.monto)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
         <div className="recibo-total">
           <span>Total</span>
-          <strong>{moneda(pago.monto)}</strong>
+          <strong>{moneda(recibo.total)}</strong>
         </div>
       </div>
     </Modal>
