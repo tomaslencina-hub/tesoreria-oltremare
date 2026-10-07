@@ -1,0 +1,2 @@
+# sqlx valida el checksum de las migraciones aplicadas: no convertir finales de linea
+*.sql text eol=lf

@@ -1,0 +1,28 @@
+use tauri_plugin_sql::{Migration, MigrationKind};
+
+/// URL de la base usada también desde el frontend (src/lib/db.ts).
+/// El archivo se crea en la carpeta de configuración de la app
+/// (%APPDATA%\com.oltremare.tesoreria\tesoreria.db en Windows).
+const DB_URL: &str = "sqlite:tesoreria.db";
+
+fn migraciones() -> Vec<Migration> {
+    vec![Migration {
+        version: 1,
+        description: "esquema_inicial",
+        sql: include_str!("../migrations/001_esquema_inicial.sql"),
+        kind: MigrationKind::Up,
+    }]
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations(DB_URL, migraciones())
+                .build(),
+        )
+        .run(tauri::generate_context!())
+        .expect("error al iniciar la aplicación");
+}
