@@ -9,7 +9,10 @@ export interface Configuracion {
   direccion: string;
   personeria: string;
   cuit: string;
+  /** Nombre que va en el recibo arriba de la línea (en lugar de la firma). */
   firmante: string;
+  /** Cargo que va debajo de la línea ("Tesorera"). */
+  cargo_firmante: string;
   /** Que la app apriete Enviar en WhatsApp. Si no, deja el mensaje listo para que la persona lo envíe. */
   envio_automatico: boolean;
 }
@@ -28,7 +31,8 @@ export async function leerConfiguracion(): Promise<Configuracion> {
     direccion: m.direccion ?? "",
     personeria: m.personeria ?? "",
     cuit: m.cuit ?? "",
-    firmante: m.firmante ?? "Tesorero",
+    firmante: m.firmante ?? "",
+    cargo_firmante: m.cargo_firmante ?? "Tesorera",
     envio_automatico: m.whatsapp_enviar_solo === "1",
   };
 }
@@ -44,6 +48,7 @@ export async function guardarConfiguracion(c: Configuracion) {
     ["personeria", c.personeria],
     ["cuit", c.cuit],
     ["firmante", c.firmante],
+    ["cargo_firmante", c.cargo_firmante],
     ["whatsapp_enviar_solo", c.envio_automatico ? "1" : "0"],
   ];
   for (const [clave, valor] of pares) {

@@ -58,8 +58,9 @@ export default function Talon({ recibo, grupo, config }: Props) {
           <small>Recibo N° {numeroRecibo(recibo.numero)} · {fecha(recibo.fecha)} · <span className="capitalizar">{recibo.medio_pago}</span></small>
         </div>
         <div className="talon-firma">
+          <span className="talon-firmante">{config.firmante}</span>
           <span className="talon-linea" />
-          <span>{config.firmante}</span>
+          <span>{config.cargo_firmante}</span>
         </div>
       </div>
       {recibo.anulado ? <div className="recibo-anulado">ANULADO</div> : null}

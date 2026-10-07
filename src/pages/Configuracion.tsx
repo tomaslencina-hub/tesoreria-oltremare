@@ -40,8 +40,12 @@ export default function Configuracion() {
         <label>Personería jurídica<input {...campo("personeria")} /></label>
         <label>C.U.I.T.<input {...campo("cuit")} /></label>
         <label>
-          Firma del recibo
-          <input {...campo("firmante")} placeholder="Tesorero" />
+          Nombre en el recibo
+          <input {...campo("firmante")} placeholder="Mabel Malandra" />
+        </label>
+        <label>
+          Cargo
+          <input {...campo("cargo_firmante")} placeholder="Tesorera" />
         </label>
         <label>Cuota societaria mensual ($)<input value={cuota} onChange={(e) => setCuota(e.target.value)} inputMode="decimal" /></label>
 
