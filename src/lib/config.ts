@@ -6,6 +6,10 @@ export interface Configuracion {
   prefijo_whatsapp: string;
   plantilla_whatsapp: string;
   plantilla_recordatorio: string;
+  direccion: string;
+  personeria: string;
+  cuit: string;
+  firmante: string;
 }
 
 export async function leerConfiguracion(): Promise<Configuracion> {
@@ -19,6 +23,10 @@ export async function leerConfiguracion(): Promise<Configuracion> {
     prefijo_whatsapp: m.prefijo_whatsapp ?? "549",
     plantilla_whatsapp: m.plantilla_whatsapp ?? "",
     plantilla_recordatorio: m.plantilla_recordatorio ?? "",
+    direccion: m.direccion ?? "",
+    personeria: m.personeria ?? "",
+    cuit: m.cuit ?? "",
+    firmante: m.firmante ?? "Tesorero",
   };
 }
 
@@ -29,6 +37,10 @@ export async function guardarConfiguracion(c: Configuracion) {
     ["prefijo_whatsapp", c.prefijo_whatsapp],
     ["plantilla_whatsapp", c.plantilla_whatsapp],
     ["plantilla_recordatorio", c.plantilla_recordatorio],
+    ["direccion", c.direccion],
+    ["personeria", c.personeria],
+    ["cuit", c.cuit],
+    ["firmante", c.firmante],
   ];
   for (const [clave, valor] of pares) {
     await execute(

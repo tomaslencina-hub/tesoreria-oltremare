@@ -9,6 +9,13 @@ export function moneda(centavos: number): string {
   return formatoMoneda.format(centavos / 100);
 }
 
+const formatoImporte = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 2 });
+
+/** Importe como en los recibos en papel: "$ 33.000" (decimales solo si los hay). */
+export function importe(centavos: number): string {
+  return `$ ${formatoImporte.format(centavos / 100)}`;
+}
+
 /** Convierte un texto ingresado por el usuario ("1.234,50" o "1234.5") a centavos. */
 export function aCentavos(texto: string): number {
   const limpio = texto.trim().replace(/\s|\$/g, "");

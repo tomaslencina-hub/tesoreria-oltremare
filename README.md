@@ -34,4 +34,4 @@ Las planillas originales y el CSV generado van en `datos/`, que **no se versiona
 
 ## WhatsApp
 
-El envío abre `wa.me` con el mensaje del recibo ya escrito; solo hay que tocar *Enviar* en WhatsApp. Los teléfonos se cargan como característica + número, sin 0 ni 15 (ej. `3415551234`); la app antepone el prefijo configurado (`549` para Argentina).
+Cada recibo genera un talón por concepto (cuota societaria, cuota curso…) con el mismo formato que los recibos en papel: logo, dirección, personería jurídica y CUIT (editables en *Configuración*). *Enviar por WhatsApp* copia la imagen de los talones al portapapeles y abre el chat con el mensaje escrito: solo hay que pegar (Ctrl+V) y enviar. Los teléfonos se cargan como característica + número, sin 0 ni 15 (ej. `3415551234`); la app antepone el prefijo configurado (`549` para Argentina).

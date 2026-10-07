@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { fecha, moneda, numeroRecibo } from "../lib/format";
+import { useRef, useState } from "react";
+import { numeroRecibo } from "../lib/format";
+import { copiarComoImagen } from "../lib/imagen";
 import type { ReciboDetalle } from "../lib/tipos";
 import { enviarReciboWhatsApp } from "../lib/whatsapp";
 import { useConfig } from "./ConfigContext";
 import Modal from "./Modal";
+import Talon from "./Talon";
 
 interface Props {
   recibo: ReciboDetalle;
@@ -13,74 +15,62 @@ interface Props {
 
 export default function ReciboModal({ recibo, onCerrar, onEnviado }: Props) {
   const config = useConfig();
+  const talones = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
   const [enviado, setEnviado] = useState(!!recibo.enviado_whatsapp_en);
+  const [ocupado, setOcupado] = useState(false);
 
-  async function enviar() {
+  async function accion(fn: () => Promise<void>) {
+    setError(null);
+    setAviso(null);
+    setOcupado(true);
     try {
-      setError(null);
-      await enviarReciboWhatsApp(recibo, config);
-      setEnviado(true);
-      onEnviado?.();
+      await fn();
     } catch (e) {
       setError(String(e));
+    } finally {
+      setOcupado(false);
     }
   }
+
+  const copiar = () =>
+    accion(async () => {
+      await copiarComoImagen(talones.current!);
+      setAviso("Imagen copiada. Pegala con Ctrl+V donde quieras.");
+    });
+
+  // Copia la imagen y abre el chat con el mensaje: en WhatsApp solo resta pegar (Ctrl+V) y enviar.
+  const enviar = () =>
+    accion(async () => {
+      await copiarComoImagen(talones.current!);
+      await enviarReciboWhatsApp(recibo, config);
+      setEnviado(true);
+      setAviso("Se abrió WhatsApp. Pegá la imagen del recibo con Ctrl+V y enviá.");
+      onEnviado?.();
+    });
 
   return (
     <Modal
       titulo={`Recibo N° ${numeroRecibo(recibo.numero)}`}
       onCerrar={onCerrar}
-      ancho={620}
+      ancho={720}
       pie={
         <>
           {error && <span className="error">{error}</span>}
+          {aviso && <span className="ok">{aviso}</span>}
           <button onClick={() => window.print()}>Imprimir</button>
-          <button className="btn-whatsapp" onClick={enviar} disabled={!!recibo.anulado}>
+          <button onClick={copiar} disabled={ocupado}>Copiar imagen</button>
+          <button className="btn-whatsapp" onClick={enviar} disabled={ocupado || !!recibo.anulado}>
             {enviado ? "Reenviar por WhatsApp" : "Enviar por WhatsApp"}
           </button>
         </>
       }
     >
-      <div className="recibo" id="recibo-imprimible">
-        <div className="recibo-cabecera">
-          <div>
-            <h3>{config.nombre_asociacion}</h3>
-            <span className="muted">Tesorería</span>
-          </div>
-          <div className="recibo-numero">
-            <span>RECIBO</span>
-            <strong>N° {numeroRecibo(recibo.numero)}</strong>
-            <span>{fecha(recibo.fecha)}</span>
-          </div>
-        </div>
-        {recibo.anulado ? <div className="recibo-anulado">ANULADO</div> : null}
-        <dl className="recibo-datos">
-          <dt>Recibimos de</dt>
-          <dd>{recibo.apellido}, {recibo.nombre}{recibo.dni ? ` — DNI ${recibo.dni}` : ""}</dd>
-          <dt>Medio de pago</dt>
-          <dd className="capitalizar">{recibo.medio_pago}</dd>
-          {recibo.observaciones && (
-            <>
-              <dt>Observaciones</dt>
-              <dd>{recibo.observaciones}</dd>
-            </>
-          )}
-        </dl>
-        <table className="recibo-items">
-          <tbody>
-            {recibo.items.map((i, n) => (
-              <tr key={i.id ?? n}>
-                <td>{i.concepto}</td>
-                <td className="num">{moneda(i.monto)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="recibo-total">
-          <span>Total</span>
-          <strong>{moneda(recibo.total)}</strong>
-        </div>
+      <div className="talones" id="recibo-imprimible" ref={talones}>
+        {recibo.items.map((item, i) => (
+          <Talon key={item.id ?? i} recibo={recibo} item={item} config={config} />
+        ))}
       </div>
     </Modal>
   );

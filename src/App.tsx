@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./App.css";
+import logo from "./assets/logo-oltremare.png";
 import { ConfigProvider, useConfigCtx } from "./components/ConfigContext";
 import Cobros from "./pages/Cobros";
 import Configuracion from "./pages/Configuracion";
@@ -29,12 +30,9 @@ function Contenido() {
   return (
     <div className="layout">
       <nav className="menu">
-        <div className="marca">
-          <span className="bandera" aria-hidden><i /><i /><i /></span>
-          <div>
-            <strong>{config.nombre_asociacion}</strong>
-            <small>Tesorería</small>
-          </div>
+        <div className="logo-menu">
+          <img src={logo} alt={config.nombre_asociacion} />
+          <small>Tesorería</small>
         </div>
         {MENU.map((m) => (
           <button key={m.id} className={pagina === m.id ? "activo" : ""} onClick={() => setPagina(m.id)}>

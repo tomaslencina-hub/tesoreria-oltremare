@@ -12,7 +12,6 @@ interface Analisis {
 }
 
 export default function ImportarModal({ onCerrar, onImportado }: { onCerrar: () => void; onImportado: () => void }) {
-  const [archivo, setArchivo] = useState("");
   const [analisis, setAnalisis] = useState<Analisis[]>([]);
   const [errores, setErrores] = useState<string[]>([]);
   const [importando, setImportando] = useState(false);
@@ -21,7 +20,6 @@ export default function ImportarModal({ onCerrar, onImportado }: { onCerrar: () 
   async function elegir(e: ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    setArchivo(f.name);
     setResultado(null);
     const { filas, errores } = leerAlumnos(await f.text());
     const cursos = await select<Curso>("SELECT * FROM cursos");
