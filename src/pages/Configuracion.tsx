@@ -10,7 +10,7 @@ export default function Configuracion() {
   const [cuota, setCuota] = useState(centavosAInput(config.cuota_social));
   const [mensaje, setMensaje] = useState<string | null>(null);
 
-  const campo = (k: keyof Omit<Config, "cuota_social">) => ({
+  const campo = (k: keyof Omit<Config, "cuota_social" | "envio_automatico">) => ({
     value: c[k],
     onChange: (e: { target: { value: string } }) => setC({ ...c, [k]: e.target.value }),
   });
@@ -50,7 +50,10 @@ export default function Configuracion() {
           Prefijo internacional
           <input {...campo("prefijo_whatsapp")} placeholder="549" />
         </label>
-        <span />
+        <label className="check">
+          <input type="checkbox" checked={c.envio_automatico} onChange={(e) => setC({ ...c, envio_automatico: e.target.checked })} />
+          Enviar automáticamente con WhatsApp Desktop
+        </label>
         <label className="col-2">
           Mensaje que acompaña al recibo
           <textarea rows={11} {...campo("plantilla_whatsapp")} />

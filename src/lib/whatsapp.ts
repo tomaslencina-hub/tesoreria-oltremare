@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import type { Configuracion } from "./config";
 import { fecha, moneda, numeroRecibo, periodo } from "./format";
@@ -52,18 +53,38 @@ export function mensajeRecordatorio(p: PendientePersona, per: string, config: Co
   });
 }
 
-async function abrirChat(telefono: string | null, nombre: string, texto: string, config: Configuracion) {
+/** "automatico": WhatsApp Desktop envió solo. "manual": quedó el chat abierto para completar a mano. */
+export type ModoEnvio = "automatico" | "manual";
+
+async function enviar(
+  telefono: string | null, nombre: string, texto: string, config: Configuracion, conImagen: boolean,
+): Promise<ModoEnvio> {
   const tel = telefono ? normalizarTelefono(telefono, config.prefijo_whatsapp) : null;
   if (!tel) throw new Error(`${nombre} no tiene teléfono cargado`);
-  await openUrl(`https://wa.me/${tel}?text=${encodeURIComponent(texto)}`);
+  const msj = encodeURIComponent(texto);
+  if (config.envio_automatico) {
+    try {
+      await invoke("enviar_whatsapp_desktop", { url: `whatsapp://send?phone=${tel}&text=${msj}`, conImagen });
+      return "automatico";
+    } catch (e) {
+      // Si WhatsApp Desktop no llegó a abrirse no se tocó nada: se sigue por WhatsApp Web.
+      if (!/No se (pudo abrir|abrió) WhatsApp Desktop/.test(String(e))) throw new Error(String(e));
+    }
+  }
+  await openUrl(`https://wa.me/${tel}?text=${msj}`);
+  return "manual";
 }
 
-/** Abre WhatsApp con el mensaje del recibo listo para enviar y marca el recibo como enviado. */
-export async function enviarReciboWhatsApp(r: ReciboDetalle, config: Configuracion) {
-  await abrirChat(r.telefono, `${r.nombre} ${r.apellido}`, mensajeRecibo(r, config), config);
+/**
+ * Envía el recibo y lo marca como enviado. La imagen de los talones ya tiene que estar
+ * en el portapapeles (ver copiarComoImagen).
+ */
+export async function enviarReciboWhatsApp(r: ReciboDetalle, config: Configuracion): Promise<ModoEnvio> {
+  const modo = await enviar(r.telefono, `${r.nombre} ${r.apellido}`, mensajeRecibo(r, config), config, true);
   await marcarEnviado(r.id);
+  return modo;
 }
 
-export async function enviarRecordatorioWhatsApp(p: PendientePersona, per: string, config: Configuracion) {
-  await abrirChat(p.telefono, `${p.nombre} ${p.apellido}`, mensajeRecordatorio(p, per, config), config);
+export async function enviarRecordatorioWhatsApp(p: PendientePersona, per: string, config: Configuracion): Promise<ModoEnvio> {
+  return enviar(p.telefono, `${p.nombre} ${p.apellido}`, mensajeRecordatorio(p, per, config), config, false);
 }

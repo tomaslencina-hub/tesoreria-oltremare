@@ -40,13 +40,16 @@ export default function ReciboModal({ recibo, onCerrar, onEnviado }: Props) {
       setAviso("Imagen copiada. Pegala con Ctrl+V donde quieras.");
     });
 
-  // Copia la imagen y abre el chat con el mensaje: en WhatsApp solo resta pegar (Ctrl+V) y enviar.
+  // Copia la imagen y la envía junto con el mensaje (automático con WhatsApp Desktop).
   const enviar = () =>
     accion(async () => {
       await copiarComoImagen(talones.current!);
-      await enviarReciboWhatsApp(recibo, config);
+      if (config.envio_automatico) setAviso("Enviando por WhatsApp… no uses el mouse ni el teclado unos segundos.");
+      const modo = await enviarReciboWhatsApp(recibo, config);
       setEnviado(true);
-      setAviso("Se abrió WhatsApp. Pegá la imagen del recibo con Ctrl+V y enviá.");
+      setAviso(modo === "automatico"
+        ? "Recibo enviado por WhatsApp."
+        : "Se abrió WhatsApp. Enviá el mensaje y después pegá la imagen con Ctrl+V.");
       onEnviado?.();
     });
 

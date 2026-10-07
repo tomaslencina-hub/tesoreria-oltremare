@@ -1,3 +1,5 @@
+mod whatsapp;
+
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 /// URL de la base usada también desde el frontend (src/lib/db.ts).
@@ -38,6 +40,7 @@ pub fn run() {
                 .add_migrations(DB_URL, migraciones())
                 .build(),
         )
+        .invoke_handler(tauri::generate_handler![whatsapp::enviar_whatsapp_desktop])
         .run(tauri::generate_context!())
         .expect("error al iniciar la aplicación");
 }
