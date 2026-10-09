@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useConfig, useConfigCtx } from "../components/ConfigContext";
+import CopiasPanel from "../components/CopiasPanel";
 import { Configuracion as Config, guardarConfiguracion } from "../lib/config";
 import { aCentavos, centavosAInput } from "../lib/format";
 
@@ -12,7 +13,7 @@ export default function Configuracion() {
 
   const [recargo, setRecargo] = useState(String(config.recargo_porcentaje).replace(".", ","));
 
-  const campo = (k: keyof Omit<Config, "cuota_social" | "recargo_porcentaje" | "envio_automatico">) => ({
+  const campo = (k: keyof Omit<Config, "cuota_social" | "recargo_porcentaje" | "envio_automatico" | "carpeta_copias">) => ({
     value: c[k],
     onChange: (e: { target: { value: string } }) => setC({ ...c, [k]: e.target.value }),
   });
@@ -21,6 +22,7 @@ export default function Configuracion() {
     e.preventDefault();
     await guardarConfiguracion({
       ...c,
+      carpeta_copias: config.carpeta_copias, // se cambia desde el panel de copias, no desde este formulario
       nombre_asociacion: c.nombre_asociacion.trim(),
       cuota_social: aCentavos(cuota),
       recargo_porcentaje: Math.max(0, Number(recargo.replace(",", ".")) || 0),
@@ -83,6 +85,7 @@ export default function Configuracion() {
           <button className="btn-primario" type="submit">Guardar</button>
         </div>
       </form>
+      <CopiasPanel />
     </section>
   );
 }

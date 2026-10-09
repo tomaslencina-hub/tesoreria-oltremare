@@ -24,3 +24,11 @@ export async function execute(sql: string, params: unknown[] = []) {
   const db = await getDb();
   return db.execute(sql, params);
 }
+
+/** Cierra la conexión (necesario antes de reemplazar el archivo de la base al restaurar una copia). */
+export async function cerrarDb() {
+  if (!instancia) return;
+  const db = await instancia;
+  instancia = null;
+  await db.close();
+}

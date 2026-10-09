@@ -1,3 +1,4 @@
+mod copias;
 mod whatsapp;
 
 use tauri_plugin_sql::{Migration, MigrationKind};
@@ -49,12 +50,18 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations(DB_URL, migraciones())
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![whatsapp::enviar_whatsapp_desktop])
+        .invoke_handler(tauri::generate_handler![
+            whatsapp::enviar_whatsapp_desktop,
+            copias::copia_preparar,
+            copias::copia_guardar,
+            copias::copia_restaurar,
+        ])
         .run(tauri::generate_context!())
         .expect("error al iniciar la aplicación");
 }

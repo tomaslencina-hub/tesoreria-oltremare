@@ -56,6 +56,17 @@ npm run build:test    # o build:prod
 - Esquema: [src-tauri/migrations](src-tauri/migrations). Las migraciones se registran en [src-tauri/src/lib.rs](src-tauri/src/lib.rs) y se aplican solas al abrir la app. Para cambiar el esquema, agregar un archivo nuevo (`002_...sql`) y sumarlo a la lista — nunca editar uno ya aplicado.
 - Los montos se guardan en **centavos** (enteros).
 
+## Copias de seguridad
+
+La base vive solo en la PC donde está instalada la app, así que la app guarda copias sola:
+
+- **Automática**: una por día (`tesoreria-oltremare_<fecha>.db`), al abrir la app si ese día no hay ninguna y al cerrarla. Se conservan las últimas 30.
+- **Dónde**: en la carpeta elegida en *Configuración → Copia de seguridad* (idealmente una carpeta de Google Drive para escritorio, para que quede fuera de la PC). Sin carpeta configurada, o si no está disponible, quedan en `%APPDATA%<identificador>copias`.
+- **Guardar copia ahora**: a un archivo puntual (pendrive, etc.).
+- **Restaurar copia**: reemplaza todos los datos por los de la copia y reinicia la app; antes guarda la base actual como `antes-de-restaurar_<fecha>.db` en las copias locales. Sirve también para mudar los datos a otra PC.
+
+Las copias contienen datos personales: la carpeta tiene que ser de una cuenta de la asociación.
+
 ## Importar alumnos
 
 Se carga la planilla [plantillas/plantilla_alumnos.xlsx](plantillas/plantilla_alumnos.xlsx) (hoja «Alumnos», con listas desplegables e instrucciones) y se importa desde *Alumnos y socios → Importar planilla*. También acepta CSV con las mismas columnas: `Apellido; Nombre; DNI; Teléfono; Curso; Otro curso; Socio; Activo; Observaciones`. Las personas existentes no se duplican: se actualiza lo que la planilla trae escrito (teléfono, DNI, socio, activo, cursos) y las celdas vacías no borran nada. La vista previa muestra qué cambia en cada persona antes de aplicar.

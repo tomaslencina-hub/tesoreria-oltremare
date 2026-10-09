@@ -15,6 +15,8 @@ export interface Configuracion {
   firmante: string;
   /** Cargo que va debajo de la línea ("Tesorera"). */
   cargo_firmante: string;
+  /** Carpeta (ej. de Google Drive) donde se guardan las copias de seguridad; vacío = solo en la PC. */
+  carpeta_copias: string;
   /** Que la app apriete Enviar en WhatsApp. Si no, deja el mensaje listo para que la persona lo envíe. */
   envio_automatico: boolean;
 }
@@ -36,6 +38,7 @@ export async function leerConfiguracion(): Promise<Configuracion> {
     cuit: m.cuit ?? "",
     firmante: m.firmante ?? "",
     cargo_firmante: m.cargo_firmante ?? "Tesorera",
+    carpeta_copias: m.carpeta_copias ?? "",
     envio_automatico: m.whatsapp_enviar_solo === "1",
   };
 }
@@ -53,6 +56,7 @@ export async function guardarConfiguracion(c: Configuracion) {
     ["cuit", c.cuit],
     ["firmante", c.firmante],
     ["cargo_firmante", c.cargo_firmante],
+    ["carpeta_copias", c.carpeta_copias],
     ["whatsapp_enviar_solo", c.envio_automatico ? "1" : "0"],
   ];
   for (const [clave, valor] of pares) {
@@ -62,4 +66,13 @@ export async function guardarConfiguracion(c: Configuracion) {
       [clave, valor],
     );
   }
+}
+
+/** Guarda una sola clave de configuración (para cambios que se aplican al instante). */
+export async function guardarClave(clave: string, valor: string) {
+  await execute(
+    "INSERT INTO configuracion (clave, valor) VALUES ($1, $2) " +
+      "ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor",
+    [clave, valor],
+  );
 }

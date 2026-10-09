@@ -6,6 +6,7 @@ import logo from "./assets/logo-oltremare-claro.png";
 import { ConfigProvider, useConfigCtx } from "./components/ConfigContext";
 import Actualizador from "./components/Actualizador";
 import { ConfirmarProvider } from "./components/Confirmar";
+import CopiaAutomatica from "./components/CopiaAutomatica";
 import Cobros from "./pages/Cobros";
 import Configuracion from "./pages/Configuracion";
 import Cursos from "./pages/Cursos";
@@ -70,6 +71,7 @@ function Contenido() {
         {version && <small className="version">Versión {version}</small>}
       </nav>
       <Actualizador />
+      <CopiaAutomatica />
       <div className="principal">
         <div className="barra-superior">
           <button className="btn-minimizar" title="Minimizar" aria-label="Minimizar" onClick={() => getCurrentWindow().minimize()}>
