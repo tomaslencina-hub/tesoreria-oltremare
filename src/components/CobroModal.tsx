@@ -30,6 +30,8 @@ interface Fila {
   yaPagados: string[];
   concepto: string; // sin el mes
   monto: string; // texto editable; mensual si hay períodos
+  /** Sumar el recargo opcional (porcentaje de Configuración) a este concepto. */
+  recargo: boolean;
 }
 
 let contador = 0;
@@ -75,7 +77,7 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
           if (!f) {
             f = {
               clave: nuevaClave(), incluido: true, tipo: p.tipo, curso_id: p.curso_id, periodos: [], yaPagados: [],
-              concepto: conceptoPara(p.tipo, p.curso_nombre, null), monto: centavosAInput(p.monto),
+              concepto: conceptoPara(p.tipo, p.curso_nombre, null), monto: centavosAInput(p.monto), recargo: false,
             };
             grupos.set(clave, f);
           }
@@ -92,8 +94,14 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
     return t ? personas.filter((p) => `${p.apellido} ${p.nombre}`.toLowerCase().includes(t)) : personas;
   }, [personas, busqueda]);
 
+  const pctRecargo = config.recargo_porcentaje;
+  /** Recargo por unidad (por mes, si es mensual) de una fila, en centavos. */
+  const recargoDe = (f: Fila) => (f.recargo ? Math.round((aCentavos(f.monto) * pctRecargo) / 100) : 0);
+  const subtotal = (f: Fila) => (aCentavos(f.monto) + recargoDe(f)) * cantidad(f);
+
   const incluidas = filas.filter((f) => f.incluido);
-  const total = incluidas.reduce((s, f) => s + aCentavos(f.monto) * cantidad(f), 0);
+  const total = incluidas.reduce((s, f) => s + subtotal(f), 0);
+  const totalRecargo = incluidas.reduce((s, f) => s + recargoDe(f) * cantidad(f), 0);
 
   function cambiar(clave: string, cambios: Partial<Fila>) {
     setFilas((xs) => xs.map((f) => (f.clave === clave ? { ...f, ...cambios } : f)));
@@ -105,7 +113,7 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
     setFilas((xs) => [...xs, {
       clave: nuevaClave(), incluido: true, tipo, curso_id: curso?.id ?? null,
       periodos: esMensual(tipo) ? meses : [], yaPagados: [],
-      concepto: conceptoPara(tipo, curso?.nombre ?? null, null), monto: monto ? centavosAInput(monto) : "",
+      concepto: conceptoPara(tipo, curso?.nombre ?? null, null), monto: monto ? centavosAInput(monto) : "", recargo: false,
     }]);
   }
 
@@ -126,11 +134,12 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
   /** Expande cada fila mensual en un ítem por mes. */
   function itemsARegistrar(): ReciboItem[] {
     return incluidas.flatMap((f): ReciboItem[] => {
-      const monto = aCentavos(f.monto);
+      const recargo = recargoDe(f);
+      const monto = aCentavos(f.monto) + recargo;
       const concepto = f.concepto.trim();
-      if (f.periodos.length === 0) return [{ tipo: f.tipo, curso_id: f.curso_id, periodo: null, concepto, monto }];
+      if (f.periodos.length === 0) return [{ tipo: f.tipo, curso_id: f.curso_id, periodo: null, concepto, monto, recargo }];
       return [...f.periodos].sort().map((p) => ({
-        tipo: f.tipo, curso_id: f.curso_id, periodo: p, concepto: `${concepto} ${formatoPeriodo(p)}`, monto,
+        tipo: f.tipo, curso_id: f.curso_id, periodo: p, concepto: `${concepto} ${formatoPeriodo(p)}`, monto, recargo,
       }));
     });
   }
@@ -189,11 +198,14 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
     <Modal
       titulo="Registrar cobro"
       onCerrar={onCerrar}
-      ancho={820}
+      ancho={900}
       pie={
         <>
           {error && <span className="error">{error}</span>}
-          <span className="total-pie">Total: <strong>{moneda(total)}</strong></span>
+          <span className="total-pie">
+            Total: <strong>{moneda(total)}</strong>
+            {totalRecargo > 0 && <small className="muted"> (incluye {moneda(totalRecargo)} de recargo)</small>}
+          </span>
           <button onClick={onCerrar}>Cancelar</button>
           <button className="btn-primario" type="submit" form="form-cobro" disabled={guardando}>
             Registrar y ver recibo
@@ -255,6 +267,7 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
               <span>Concepto</span>
               <span>Meses</span>
               <span className="num">Importe {meses.length > 1 ? "mensual" : ""}</span>
+              <span>Recargo</span>
               <span className="num">Subtotal</span>
               <span />
             </div>
@@ -290,7 +303,11 @@ export default function CobroModal({ inicial, onCerrar, onRegistrado }: Props) {
                 {f.periodos.length > 1 && <span>{f.periodos.length} ×</span>}
                 <input value={f.monto} onChange={(e) => cambiar(f.clave, { monto: e.target.value })} inputMode="decimal" placeholder="0,00" />
               </div>
-              <span className="concepto-subtotal">{moneda(aCentavos(f.monto) * cantidad(f))}</span>
+              <label className="concepto-recargo" title={`Sumar ${pctRecargo}% de recargo a este concepto`}>
+                <input type="checkbox" checked={f.recargo} onChange={(e) => cambiar(f.clave, { recargo: e.target.checked })} />
+                +{pctRecargo}%
+              </label>
+              <span className="concepto-subtotal">{moneda(subtotal(f))}</span>
               <button type="button" className="btn-icono" title="Quitar" onClick={() => setFilas((xs) => xs.filter((x) => x.clave !== f.clave))}>×</button>
             </div>
           ))}

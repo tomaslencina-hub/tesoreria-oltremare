@@ -26,7 +26,10 @@ export interface GrupoItems {
   /** Concepto sin el mes: "Cuota societaria", "Curso Segundo", "Inscripción Primero"… */
   concepto: string;
   periodos: string[];
+  /** Total del grupo, con recargo incluido. */
   monto: number;
+  /** Parte de `monto` que es recargo. */
+  recargo: number;
 }
 
 /** Concepto de un ítem sin el mes ("Curso Segundo Octubre 2026" -> "Curso Segundo"). */
@@ -42,11 +45,12 @@ export function agruparItems(items: ReciboItem[]): GrupoItems[] {
     const clave = `${i.tipo}|${i.curso_id ?? ""}|${concepto}`;
     let g = grupos.get(clave);
     if (!g) {
-      g = { tipo: i.tipo, curso_id: i.curso_id, concepto, periodos: [], monto: 0 };
+      g = { tipo: i.tipo, curso_id: i.curso_id, concepto, periodos: [], monto: 0, recargo: 0 };
       grupos.set(clave, g);
     }
     if (i.periodo) g.periodos.push(i.periodo);
     g.monto += i.monto;
+    g.recargo += i.recargo ?? 0;
   }
   return [...grupos.values()];
 }
@@ -77,9 +81,9 @@ export async function registrarRecibo(r: NuevoRecibo): Promise<ReciboDetalle> {
   try {
     for (const i of r.items) {
       await execute(
-        `INSERT INTO recibo_items (recibo_id, tipo, curso_id, periodo, concepto, monto)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [id, i.tipo, i.curso_id, i.periodo, i.concepto, i.monto],
+        `INSERT INTO recibo_items (recibo_id, tipo, curso_id, periodo, concepto, monto, recargo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [id, i.tipo, i.curso_id, i.periodo, i.concepto, i.monto, i.recargo ?? 0],
       );
     }
   } catch (e) {

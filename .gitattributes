@@ -1,2 +1,7 @@
-# sqlx valida el checksum de las migraciones aplicadas: no convertir finales de linea
-*.sql text eol=lf
+# Finales de línea LF en todo el proyecto, sin importar la configuración de git de cada PC.
+# (sqlx valida el checksum de las migraciones ya aplicadas: un cambio de fin de línea las rompería.)
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.icns binary
+*.xlsx binary

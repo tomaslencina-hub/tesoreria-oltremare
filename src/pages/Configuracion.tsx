@@ -10,7 +10,9 @@ export default function Configuracion() {
   const [cuota, setCuota] = useState(centavosAInput(config.cuota_social));
   const [mensaje, setMensaje] = useState<string | null>(null);
 
-  const campo = (k: keyof Omit<Config, "cuota_social" | "envio_automatico">) => ({
+  const [recargo, setRecargo] = useState(String(config.recargo_porcentaje).replace(".", ","));
+
+  const campo = (k: keyof Omit<Config, "cuota_social" | "recargo_porcentaje" | "envio_automatico">) => ({
     value: c[k],
     onChange: (e: { target: { value: string } }) => setC({ ...c, [k]: e.target.value }),
   });
@@ -21,6 +23,7 @@ export default function Configuracion() {
       ...c,
       nombre_asociacion: c.nombre_asociacion.trim(),
       cuota_social: aCentavos(cuota),
+      recargo_porcentaje: Math.max(0, Number(recargo.replace(",", ".")) || 0),
       prefijo_whatsapp: c.prefijo_whatsapp.replace(/\D/g, ""),
     });
     await recargar();
@@ -48,6 +51,10 @@ export default function Configuracion() {
           <input {...campo("cargo_firmante")} placeholder="Tesorera" />
         </label>
         <label>Cuota societaria mensual ($)<input value={cuota} onChange={(e) => setCuota(e.target.value)} inputMode="decimal" /></label>
+        <label>
+          Recargo opcional al cobrar (%)
+          <input value={recargo} onChange={(e) => setRecargo(e.target.value)} inputMode="decimal" placeholder="10" />
+        </label>
 
         <h3 className="col-2">WhatsApp</h3>
         <label>

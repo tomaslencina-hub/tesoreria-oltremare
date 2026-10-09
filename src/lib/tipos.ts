@@ -35,7 +35,10 @@ export interface ReciboItem {
   curso_id: number | null;
   periodo: string | null;
   concepto: string;
+  /** Importe cobrado, con el recargo incluido si lo hubo. */
   monto: number;
+  /** Parte de `monto` que es recargo (0 o ausente si no se aplicó). */
+  recargo?: number;
 }
 
 export interface Recibo {

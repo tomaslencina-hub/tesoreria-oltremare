@@ -3,6 +3,8 @@ import { execute, select } from "./db";
 export interface Configuracion {
   nombre_asociacion: string;
   cuota_social: number; // centavos
+  /** Porcentaje del recargo opcional al cobrar (10 = 10%). */
+  recargo_porcentaje: number;
   prefijo_whatsapp: string;
   plantilla_whatsapp: string;
   plantilla_recordatorio: string;
@@ -25,6 +27,7 @@ export async function leerConfiguracion(): Promise<Configuracion> {
   return {
     nombre_asociacion: m.nombre_asociacion ?? "",
     cuota_social: Number(m.cuota_social ?? 0),
+    recargo_porcentaje: Number(m.recargo_porcentaje ?? 10),
     prefijo_whatsapp: m.prefijo_whatsapp ?? "549",
     plantilla_whatsapp: m.plantilla_whatsapp ?? "",
     plantilla_recordatorio: m.plantilla_recordatorio ?? "",
@@ -41,6 +44,7 @@ export async function guardarConfiguracion(c: Configuracion) {
   const pares: [string, string][] = [
     ["nombre_asociacion", c.nombre_asociacion],
     ["cuota_social", String(c.cuota_social)],
+    ["recargo_porcentaje", String(c.recargo_porcentaje)],
     ["prefijo_whatsapp", c.prefijo_whatsapp],
     ["plantilla_whatsapp", c.plantilla_whatsapp],
     ["plantilla_recordatorio", c.plantilla_recordatorio],

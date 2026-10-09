@@ -48,7 +48,10 @@ export default function Talon({ recibo, grupo, config }: Props) {
         <dt>Socio:</dt>
         <dd className="talon-socio">{recibo.apellido.toUpperCase()}, {recibo.nombre.toUpperCase()}</dd>
         <dt>Importe:</dt>
-        <dd>{importe(grupo.monto)}</dd>
+        <dd>
+          {importe(grupo.monto)}
+          {grupo.recargo > 0 && <span className="talon-recargo">(incluye recargo de {importe(grupo.recargo)})</span>}
+        </dd>
         <dt>{grupo.periodos.length > 1 ? "Meses:" : "Mes:"}</dt>
         <dd>{meses(grupo)}</dd>
       </dl>

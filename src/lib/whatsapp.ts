@@ -32,7 +32,10 @@ export function mensajeRecibo(r: ReciboDetalle, config: Configuracion): string {
     apellido: r.apellido,
     numero: numeroRecibo(r.numero),
     asociacion: config.nombre_asociacion,
-    detalle: lineas(agruparItems(r.items).map((g) => ({ concepto: describirGrupo(g), monto: g.monto }))),
+    detalle: lineas(agruparItems(r.items).map((g) => ({
+      concepto: g.recargo > 0 ? `${describirGrupo(g)} (incluye recargo de ${moneda(g.recargo)})` : describirGrupo(g),
+      monto: g.monto,
+    }))),
     total: moneda(r.total),
     fecha: fecha(r.fecha),
     medio: r.medio_pago,

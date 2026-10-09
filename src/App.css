@@ -204,7 +204,7 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .conceptos-barra { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 12px; background: #f9fafb; border-bottom: 1px solid var(--borde); }
 .conceptos-vacio { padding: 14px 12px; }
 .concepto {
-  display: grid; grid-template-columns: 22px minmax(190px, 1.1fr) minmax(0, 1.3fr) 150px 104px 26px;
+  display: grid; grid-template-columns: 22px minmax(190px, 1.1fr) minmax(0, 1.3fr) 150px 70px 104px 26px;
   align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--borde);
 }
 .concepto:last-child { border-bottom: none; }
@@ -247,3 +247,9 @@ code { background: #eef0f2; padding: 1px 5px; border-radius: 4px; font-size: 12p
 .barra-progreso { height: 8px; background: #e4e7eb; border-radius: 4px; overflow: hidden; margin: 10px 0 6px; }
 .barra-progreso div { height: 100%; background: var(--verde); transition: width 0.2s; }
 .notas-version { white-space: pre-line; }
+
+/* Recargo opcional por concepto */
+.form label.concepto-recargo { flex-direction: row; align-items: center; gap: 5px; font-weight: normal; font-size: 13px; color: var(--muted); white-space: nowrap; cursor: pointer; }
+.concepto-recargo:has(input:checked) { color: var(--rojo); font-weight: 600; }
+.total-pie small { font-size: 12px; }
+.talon-recargo { color: #555; font-size: 13px; margin-left: 8px; }
